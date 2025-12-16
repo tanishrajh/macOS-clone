@@ -22,7 +22,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
     return (
         <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 1 }}
             animate={{
                 scale: window.minimized ? 0.5 : window.maximized ? 1 : 1,
                 opacity: window.minimized ? 0 : 1,

@@ -39,7 +39,7 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
             y: startY,
             width: 600,
             height: 400,
-            zIndex: windowOrder.length + 1,
+            zIndex: 10 + windowOrder.length, // Base Z-index 10
             minimized: false,
             maximized: false,
             isForeground: true,

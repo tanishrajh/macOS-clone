@@ -25,7 +25,7 @@ export const Dock: React.FC = () => {
     };
 
     return (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-[5000] mb-1">
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-[9999] mb-1">
             <div
                 className="glass-dock flex items-end gap-3 px-3 pb-3 pt-2 rounded-2xl"
                 onMouseMove={(e) => mouseX.set(e.pageX)}
