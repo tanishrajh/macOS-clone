@@ -1,0 +1,146 @@
+import { create } from 'zustand';
+import type { WindowState } from '../types/window';
+
+interface WindowStore {
+    windows: Record<string, WindowState>;
+    activeWindowId: string | null;
+    windowOrder: string[]; // List of IDs in z-order (last is top)
+
+    openWindow: (appId: string, title: string, config?: Partial<WindowState>) => void;
+    closeWindow: (id: string) => void;
+    minimizeWindow: (id: string) => void;
+    maximizeWindow: (id: string) => void;
+    focusWindow: (id: string, minimizeToggle?: boolean) => void;
+    moveWindow: (id: string, x: number, y: number) => void;
+    resizeWindow: (id: string, width: number, height: number) => void;
+}
+
+export const useWindowManager = create<WindowStore>((set, get) => ({
+    windows: {},
+    activeWindowId: null,
+    windowOrder: [],
+
+    openWindow: (appId, title, config = {}) => {
+        const id = config.id || `${appId}-${Date.now()}`;
+        const { windows, windowOrder } = get();
+
+        // If app already open and single instance, focus it? (Not strictly enforced yet)
+        // But for now, allow multiple instances unless checked by caller.
+
+        // Default centerish position
+        const startX = 100 + (windowOrder.length * 20);
+        const startY = 100 + (windowOrder.length * 20);
+
+        const newWindow: WindowState = {
+            id,
+            appId,
+            title,
+            x: startX,
+            y: startY,
+            width: 600,
+            height: 400,
+            zIndex: windowOrder.length + 1,
+            minimized: false,
+            maximized: false,
+            isForeground: true,
+            ...config
+        };
+
+        set({
+            windows: { ...windows, [id]: newWindow },
+            windowOrder: [...windowOrder, id],
+            activeWindowId: id
+        });
+    },
+
+    closeWindow: (id) => {
+        set(state => {
+            const { [id]: _, ...rest } = state.windows;
+            const newOrder = state.windowOrder.filter(wId => wId !== id);
+            const newActive = newOrder.length > 0 ? newOrder[newOrder.length - 1] : null;
+
+            return {
+                windows: rest,
+                windowOrder: newOrder,
+                activeWindowId: newActive
+            };
+        });
+    },
+
+    focusWindow: (id, minimizeToggle = false) => {
+        set(state => {
+            const window = state.windows[id];
+            if (!window) return state;
+
+            // Logic for Dock clicking: if active, minimize. If minimized, restore.
+            if (minimizeToggle && state.activeWindowId === id && !window.minimized) {
+                // Minimize
+                return {
+                    windows: { ...state.windows, [id]: { ...window, minimized: true } },
+                    activeWindowId: null // Focus nothing or next top?
+                };
+            }
+
+            // Restore if minimized
+            // const wasMinimized = window.minimized;
+
+            // Reorder z-index
+            const newOrder = state.windowOrder.filter(wId => wId !== id);
+            newOrder.push(id);
+
+            // Re-assign Z-indexes strictly? Or just use order?
+            // Using order array is better for rendering mapping.
+
+            return {
+                windows: {
+                    ...state.windows,
+                    [id]: { ...window, minimized: false }
+                },
+                windowOrder: newOrder,
+                activeWindowId: id
+            };
+        });
+    },
+
+    minimizeWindow: (id) => {
+        set(state => {
+            return {
+                windows: {
+                    ...state.windows,
+                    [id]: { ...state.windows[id], minimized: true }
+                },
+                activeWindowId: null // Clear focus logic?
+            };
+        });
+    },
+
+    maximizeWindow: (id) => {
+        set(state => {
+            const w = state.windows[id];
+            return {
+                windows: {
+                    ...state.windows,
+                    [id]: { ...w, maximized: !w.maximized }
+                }
+            };
+        });
+    },
+
+    moveWindow: (id, x, y) => {
+        set(state => ({
+            windows: {
+                ...state.windows,
+                [id]: { ...state.windows[id], x, y }
+            }
+        }));
+    },
+
+    resizeWindow: (id, width, height) => {
+        set(state => ({
+            windows: {
+                ...state.windows,
+                [id]: { ...state.windows[id], width, height }
+            }
+        }));
+    }
+}));
