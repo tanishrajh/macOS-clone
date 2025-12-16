@@ -10,7 +10,7 @@ interface WindowFrameProps {
     children: React.ReactNode;
 }
 
-export const WindowFrame: React.FC<WindowFrameProps> = ({ window, children }) => {
+export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow } = useWindowManager();
     const dragging = useDragControls();
 
@@ -39,13 +39,15 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ window, children }) =>
                 window.isForeground ? "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]" : "shadow-xl border border-black/5 opacity-90 grayscale-[0.2]",
             )}
             style={{
-                backgroundColor: 'var(--material-window-bg)',
+                backgroundColor: 'var(--material-window-bg, rgba(255, 255, 255, 0.85))',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                border: 'var(--window-border)'
+                border: 'var(--window-border, 1px solid rgba(0,0,0,0.1))'
             }}
             onPointerDown={handlePointerDown}
             drag={!window.maximized}
+            dragListener={false} // Use controls
+            dragControls={dragging}
             dragMomentum={false}
             dragElastic={0.1}
             onDragEnd={(_, info) => {
@@ -57,7 +59,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ window, children }) =>
                 className="h-10 w-full flex items-center justify-between px-4 select-none shrink-0"
                 onPointerDown={(e) => dragging.start(e)}
             >
-                <div className="flex items-center gap-2 group">
+                <div className="flex gap-2">
                     {/* Traffic Lights */}
                     <div
                         className="w-3 h-3 rounded-full bg-[#FF5F56] flex items-center justify-center cursor-pointer hover:brightness-90 active:brightness-75 text-black/0 hover:text-black/50 transition-colors"
@@ -77,13 +79,11 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({ window, children }) =>
                         className="w-3 h-3 rounded-full bg-[#27C93F] flex items-center justify-center cursor-pointer hover:brightness-90 active:brightness-75 text-black/0 hover:text-black/50 transition-colors"
                         onClick={(e) => { e.stopPropagation(); maximizeWindow(window.id); }}
                     >
-                        <Maximize2 size={6} strokeWidth={4} className="rotate-45" /> {/* Use arrows usually, but this is okay for now */}
+                        <Maximize2 size={6} strokeWidth={4} className="rotate-45" />
                     </div>
                 </div>
 
-                <div className="text-sm font-semibold text-gray-700/80 pointer-events-none">
-                    {window.title}
-                </div>
+                <div className="text-sm font-semibold text-gray-700/80 pointer-events-none">{window.title}</div>
 
                 {/* Spacer for centering logic if needed */}
                 <div className="w-16"></div>

@@ -37,7 +37,10 @@ export const Dock: React.FC = () => {
                         mouseX={mouseX}
                         app={app}
                         running={isRunning(app.id)}
-                        onClick={() => openWindow(app.id, app.name)}
+                        onClick={() => {
+                            console.log('Dock: Clicking app', app.id);
+                            openWindow(app.id, app.name);
+                        }}
                     />
                 ))}
                 <div className="w-[1px] h-10 bg-white/20 mx-1 mb-2"></div>

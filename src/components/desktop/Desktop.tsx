@@ -25,6 +25,7 @@ export const Desktop: React.FC = () => {
     const { wallpaper } = useSettings();
     const { files, getChildren } = useFileSystem();
     const { windows } = useWindowManager();
+    console.log('Desktop: Windows state:', windows);
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [desktopFolderId, setDesktopFolderId] = useState<string | null>(null);
