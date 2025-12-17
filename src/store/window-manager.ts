@@ -15,6 +15,9 @@ interface WindowStore {
     moveWindow: (id: string, x: number, y: number) => void;
     resizeWindow: (id: string, width: number, height: number) => void;
     setDockItemPos: (appId: string, rect: { x: number; y: number }) => void;
+
+    isLaunchpadOpen: boolean;
+    toggleLaunchpad: (isOpen?: boolean) => void;
 }
 
 export const useWindowManager = create<WindowStore>((set, get) => ({
@@ -160,6 +163,13 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
                 ...state.dockItems,
                 [appId]: rect
             }
+        }));
+    },
+
+    isLaunchpadOpen: false,
+    toggleLaunchpad: (isOpen) => {
+        set(state => ({
+            isLaunchpadOpen: isOpen !== undefined ? isOpen : !state.isLaunchpadOpen
         }));
     }
 }));

@@ -1,11 +1,12 @@
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useWindowManager } from '../../store/window-manager';
-import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings } from 'lucide-react';
+import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid } from 'lucide-react';
 import clsx from 'clsx';
 
 const DOCK_APPS = [
     { id: 'finder', name: 'Finder', icon: Folder, color: 'bg-blue-500', running: true },
+    { id: 'launchpad', name: 'Launchpad', icon: Grid, color: 'bg-gray-500', running: false }, // Launchpad Icon
     { id: 'safari', name: 'Safari', icon: Globe, color: 'bg-white text-blue-500', running: false },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-green-500', running: false },
     { id: 'photos', name: 'Photos', icon: Image, color: 'bg-gradient-to-tr from-orange-400 via-red-500 to-purple-600', running: false },
@@ -38,8 +39,14 @@ export const Dock: React.FC = () => {
                         app={app}
                         running={isRunning(app.id)}
                         onClick={() => {
-                            console.log('Dock: Clicking app', app.id);
-                            openWindow(app.id, app.name);
+                            if (app.id === 'launchpad') {
+                                // Toggle Launchpad (using global store action, assumes available via useWindowManager)
+                                // We need to destructure toggleLaunchpad first
+                                useWindowManager.getState().toggleLaunchpad();
+                            } else {
+                                console.log('Dock: Clicking app', app.id);
+                                openWindow(app.id, app.name);
+                            }
                         }}
                     />
                 ))}

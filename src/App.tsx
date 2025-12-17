@@ -8,12 +8,17 @@ import { Desktop } from './components/desktop/Desktop';
 import { MenuBar } from './components/system/MenuBar';
 import { Dock } from './components/dock/Dock';
 import { Spotlight } from './components/system/Spotlight';
+import { Launchpad } from './components/system/Launchpad';
+import { useWindowManager } from './store/window-manager';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 
 function App() {
   const [booted, setBooted] = useState(false);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const { initialize: initFS } = useFileSystem();
+
+  // Launchpad State
+  const { isLaunchpadOpen, toggleLaunchpad } = useWindowManager();
 
   // Global Shortcuts
   useGlobalShortcuts({
@@ -47,6 +52,7 @@ function App() {
       <MenuBar />
       <Dock />
       <Spotlight isOpen={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
+      <Launchpad isOpen={isLaunchpadOpen} onClose={() => toggleLaunchpad(false)} />
     </div>
   );
 }
