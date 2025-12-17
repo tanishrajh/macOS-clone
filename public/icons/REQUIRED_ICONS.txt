@@ -1,0 +1,23 @@
+Please add the following PNG images to this folder (public/icons).
+Ensure they are named exactly as follows (all lowercase, .png extension):
+
+apple.png (For Menu Bar, should be white or handle transparency well)
+finder.png
+launchpad.png
+safari.png
+messages.png
+photos.png
+reminders.png
+notes.png
+voicememos.png
+textedit.png
+calendar.png
+music.png
+appstore.png
+terminal.png
+activity.png
+settings.png
+trash.png
+news.png
+facetime.png
+calculator.png

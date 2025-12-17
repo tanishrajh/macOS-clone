@@ -1,25 +1,25 @@
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useWindowManager } from '../../store/window-manager';
-import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid, Notebook, FileText, Activity, CheckSquare, ShoppingBag, Mic } from 'lucide-react';
+import { Folder, LayoutGrid, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, FileText, CheckSquare, ShoppingBag, Mic, Trash2, Cpu } from 'lucide-react';
 import clsx from 'clsx';
 
 const DOCK_APPS = [
-    { id: 'finder', name: 'Finder', icon: Folder, color: 'bg-blue-500', running: true },
-    { id: 'launchpad', name: 'Launchpad', icon: Grid, color: 'bg-gray-500', running: false },
+    { id: 'finder', name: 'Finder', icon: Folder, color: 'bg-gradient-to-b from-blue-400 to-blue-600', running: true },
+    { id: 'launchpad', name: 'Launchpad', icon: LayoutGrid, color: 'bg-gradient-to-b from-gray-400 to-gray-600', running: false },
     { id: 'safari', name: 'Safari', icon: Globe, color: 'bg-white text-blue-500', running: false },
-    { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-green-500', running: false },
+    { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-gradient-to-b from-green-400 to-green-600', running: false },
     { id: 'photos', name: 'Photos', icon: Image, color: 'bg-gradient-to-tr from-orange-400 via-red-500 to-purple-600', running: false },
-    { id: 'reminders', name: 'Reminders', icon: CheckSquare, color: 'bg-white text-orange-500', running: false },
-    { id: 'notes', name: 'Notes', icon: Notebook, color: 'bg-yellow-400', running: false },
+    { id: 'reminders', name: 'Reminders', icon: CheckSquare, color: 'bg-white text-blue-500', running: false },
+    { id: 'notes', name: 'Notes', icon: FileText, color: 'bg-gradient-to-b from-yellow-300 to-yellow-500', running: false },
     { id: 'voicememos', name: 'Voice Memos', icon: Mic, color: 'bg-white text-red-500', running: false },
-    { id: 'textedit', name: 'TextEdit', icon: FileText, color: 'bg-gray-600', running: false },
+    { id: 'textedit', name: 'TextEdit', icon: FileText, color: 'bg-gradient-to-b from-gray-500 to-gray-700', running: false },
     { id: 'calendar', name: 'Calendar', icon: Calendar, color: 'bg-white text-red-500', running: true },
-    { id: 'music', name: 'Music', icon: Music, color: 'bg-red-500', running: false },
-    { id: 'appstore', name: 'App Store', icon: ShoppingBag, color: 'bg-blue-600', running: false },
-    { id: 'terminal', name: 'Terminal', icon: Terminal, color: 'bg-gray-800', running: false },
-    { id: 'activity', name: 'Activity Monitor', icon: Activity, color: 'bg-gray-700', running: false },
-    { id: 'settings', name: 'System Settings', icon: Settings, color: 'bg-gray-400', running: true },
+    { id: 'music', name: 'Music', icon: Music, color: 'bg-gradient-to-b from-red-400 to-red-600', running: false },
+    { id: 'appstore', name: 'App Store', icon: ShoppingBag, color: 'bg-gradient-to-b from-blue-500 to-blue-700', running: false },
+    { id: 'terminal', name: 'Terminal', icon: Terminal, color: 'bg-gradient-to-b from-gray-700 to-gray-900', running: false },
+    { id: 'activity', name: 'Activity Monitor', icon: Cpu, color: 'bg-gradient-to-b from-gray-600 to-gray-800', running: false },
+    { id: 'settings', name: 'System Settings', icon: Settings, color: 'bg-gradient-to-b from-gray-300 to-gray-500', running: true },
 ];
 
 import { useSettings } from '../../store/settings';
@@ -56,7 +56,7 @@ export const Dock: React.FC = () => {
                 onMouseLeave={() => setIsHovering(false)}
             >
                 <div
-                    className="glass-dock flex items-end gap-3 px-3 pb-3 pt-2 rounded-2xl"
+                    className="glass-dock flex items-end gap-3 px-3 pb-3 pt-2 rounded-[24px]"
                     onMouseMove={(e) => mouseX.set(e.pageX)}
                     onMouseLeave={() => mouseX.set(null)}
                 >
@@ -85,7 +85,7 @@ export const Dock: React.FC = () => {
                     <div className="w-[1px] h-10 bg-white/20 mx-1 mb-2"></div>
                     <DockIcon
                         mouseX={mouseX}
-                        app={{ id: 'trash', name: 'Trash', icon: Folder, color: 'bg-gray-600' }}
+                        app={{ id: 'trash', name: 'Trash', icon: Trash2, color: 'bg-gradient-to-b from-gray-500 to-gray-700' }}
                         running={false}
                         dockSize={dockSize}
                         onClick={() => { }}
@@ -153,8 +153,8 @@ const DockIcon = ({ mouseX, app, running, dockSize, onClick }: { mouseX: any, ap
                 whileTap={{ scale: 0.85 }}
             >
                 {/* App Icon Image/Component */}
-                <div className={clsx("w-full h-full rounded-2xl flex items-center justify-center shadow-lg transition-all duration-200", app.color)}>
-                    <app.icon className="w-1/2 h-1/2 text-white" />
+                <div className={clsx("w-full h-full rounded-2xl flex items-center justify-center shadow-lg transition-all duration-200 border border-white/10", app.color)}>
+                    <app.icon className={clsx("w-1/2 h-1/2", app.color.includes('text-') ? "" : "text-white")} />
                 </div>
             </motion.div>
 

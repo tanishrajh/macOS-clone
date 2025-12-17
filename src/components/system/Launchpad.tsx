@@ -2,34 +2,33 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search } from 'lucide-react';
 import { useWindowManager } from '../../store/window-manager';
-import type { LucideIcon } from 'lucide-react';
+import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, FileText, CheckSquare, ShoppingBag, Mic, Video, Calculator } from 'lucide-react';
 import clsx from 'clsx';
-
-// Reuse Dock apps or define a system-wide app registry later
-// For now, importing or redefining key apps
-import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Calculator, FileText, StickyNote, Video } from 'lucide-react';
 
 interface AppItem {
     id: string;
     name: string;
-    icon: LucideIcon;
+    icon: import('lucide-react').LucideIcon;
     color: string;
 }
 
 const APPS: AppItem[] = [
-    { id: 'finder', name: 'Finder', icon: Folder, color: 'bg-blue-500' },
+    { id: 'finder', name: 'Finder', icon: Folder, color: 'bg-gradient-to-b from-blue-400 to-blue-600' },
     { id: 'safari', name: 'Safari', icon: Globe, color: 'bg-white text-blue-500' },
-    { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-green-500' },
+    { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-gradient-to-b from-green-400 to-green-600' },
     { id: 'photos', name: 'Photos', icon: Image, color: 'bg-gradient-to-tr from-orange-400 via-red-500 to-purple-600' },
     { id: 'calendar', name: 'Calendar', icon: Calendar, color: 'bg-white text-red-500' },
-    { id: 'music', name: 'Music', icon: Music, color: 'bg-red-500' },
-    { id: 'terminal', name: 'Terminal', icon: Terminal, color: 'bg-gray-800' },
-    { id: 'settings', name: 'Settings', icon: Settings, color: 'bg-gray-400' },
-    { id: 'calculator', name: 'Calculator', icon: Calculator, color: 'bg-orange-500' },
-    { id: 'notes', name: 'Notes', icon: StickyNote, color: 'bg-yellow-400' },
-    { id: 'textedit', name: 'TextEdit', icon: FileText, color: 'bg-gray-500' },
-    { id: 'news', name: 'News', icon: Globe, color: 'bg-red-500' }, // Placeholder
-    { id: 'facetime', name: 'FaceTime', icon: Video, color: 'bg-green-400' },
+    { id: 'music', name: 'Music', icon: Music, color: 'bg-gradient-to-b from-red-400 to-red-600' },
+    { id: 'terminal', name: 'Terminal', icon: Terminal, color: 'bg-gradient-to-b from-gray-700 to-gray-900' },
+    { id: 'settings', name: 'System Settings', icon: Settings, color: 'bg-gradient-to-b from-gray-300 to-gray-500' },
+    { id: 'calculator', name: 'Calculator', icon: Calculator, color: 'bg-gradient-to-b from-orange-400 to-orange-600' },
+    { id: 'notes', name: 'Notes', icon: FileText, color: 'bg-gradient-to-b from-yellow-300 to-yellow-500' },
+    { id: 'textedit', name: 'TextEdit', icon: FileText, color: 'bg-gradient-to-b from-gray-500 to-gray-700' },
+    { id: 'voicememos', name: 'Voice Memos', icon: Mic, color: 'bg-white text-red-500' },
+    { id: 'reminders', name: 'Reminders', icon: CheckSquare, color: 'bg-white text-blue-500' },
+    { id: 'appstore', name: 'App Store', icon: ShoppingBag, color: 'bg-gradient-to-b from-blue-500 to-blue-700' },
+    { id: 'news', name: 'News', icon: FileText, color: 'bg-gradient-to-b from-red-500 to-pink-600' },
+    { id: 'facetime', name: 'FaceTime', icon: Video, color: 'bg-gradient-to-b from-green-400 to-green-600' },
 ];
 
 interface LaunchpadProps {
@@ -89,8 +88,8 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ isOpen, onClose }) => {
                                     onClose();
                                 }}
                             >
-                                <div className={clsx("w-20 h-20 rounded-[22px] flex items-center justify-center shadow-lg", app.color)}>
-                                    <app.icon className="w-12 h-12 text-white" />
+                                <div className={clsx("w-20 h-20 rounded-[22px] flex items-center justify-center shadow-lg transition-transform border border-white/10", app.color)}>
+                                    <app.icon className={clsx("w-12 h-12", app.color.includes('text-') ? "" : "text-white")} />
                                 </div>
                                 <span className="text-white font-medium text-sm tracking-wide text-shadow">
                                     {app.name}
