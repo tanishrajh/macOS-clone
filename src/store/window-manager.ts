@@ -5,6 +5,7 @@ interface WindowStore {
     windows: Record<string, WindowState>;
     activeWindowId: string | null;
     windowOrder: string[]; // List of IDs in z-order (last is top)
+    dockItems: Record<string, { x: number; y: number }>;
 
     openWindow: (appId: string, title: string, config?: Partial<WindowState>) => void;
     closeWindow: (id: string) => void;
@@ -13,6 +14,7 @@ interface WindowStore {
     focusWindow: (id: string, minimizeToggle?: boolean) => void;
     moveWindow: (id: string, x: number, y: number) => void;
     resizeWindow: (id: string, width: number, height: number) => void;
+    setDockItemPos: (appId: string, rect: { x: number; y: number }) => void;
 }
 
 export const useWindowManager = create<WindowStore>((set, get) => ({
@@ -21,11 +23,18 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
     windowOrder: [],
 
     openWindow: (appId, title, config = {}) => {
-        const id = config.id || `${appId}-${Date.now()}`;
-        const { windows, windowOrder } = get();
+        const { windows, windowOrder, focusWindow } = get();
 
-        // If app already open and single instance, focus it? (Not strictly enforced yet)
-        // But for now, allow multiple instances unless checked by caller.
+        // Check if a window for this app already exists
+        const existingWindowId = Object.keys(windows).find(id => windows[id].appId === appId);
+
+        if (existingWindowId) {
+            // If it exists, focus/toggle it
+            focusWindow(existingWindowId, true);
+            return;
+        }
+
+        const id = config.id || `${appId}-${Date.now()}`;
 
         // Default centerish position
         const startX = 100 + (windowOrder.length * 20);
@@ -140,6 +149,16 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
             windows: {
                 ...state.windows,
                 [id]: { ...state.windows[id], width, height }
+            }
+        }));
+    },
+
+    dockItems: {},
+    setDockItemPos: (appId, rect) => {
+        set(state => ({
+            dockItems: {
+                ...state.dockItems,
+                [appId]: rect
             }
         }));
     }

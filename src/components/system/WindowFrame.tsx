@@ -10,9 +10,26 @@ interface WindowFrameProps {
 }
 
 export const WindowFrame = ({ window, children }: WindowFrameProps) => {
-    const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow } = useWindowManager();
+    const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow, dockItems } = useWindowManager();
     const [isDragging, setIsDragging] = useState(false);
     const dragOffset = useRef({ x: 0, y: 0 });
+
+    const dockPos = dockItems[window.appId];
+
+    // Calculate transform for minimize animation
+    const getTransform = () => {
+        if (!window.minimized) return 'none';
+
+        if (dockPos) {
+            // Calculate transform relative to current position (x, y)
+            const deltaX = dockPos.x - (window.x + window.width / 2);
+            const deltaY = dockPos.y - (window.y + window.height / 2);
+
+            return `translate(${deltaX}px, ${deltaY}px) scale(0)`;
+        }
+
+        return `translate(0px, ${window.y + 200}px) scale(0.5)`;
+    };
 
     const handlePointerDown = () => {
         if (!window.isForeground) {
@@ -59,16 +76,23 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     return (
         <div
             className={clsx(
-                "absolute flex flex-col overflow-hidden rounded-xl shadow-2xl",
+                "absolute flex flex-col overflow-hidden rounded-xl shadow-2xl origin-center",
                 window.isForeground ? "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]" : "shadow-xl border border-black/5 opacity-90 grayscale-[0.2]",
             )}
             style={{
                 left: window.maximized ? 0 : window.x,
-                top: window.maximized ? 30 : window.y, // Respect MenuBar height
+                top: window.maximized ? 30 : window.y,
                 width: window.maximized ? '100%' : window.width,
                 height: window.maximized ? 'calc(100% - 30px)' : window.height,
                 zIndex: window.zIndex,
-                display: window.minimized ? 'none' : 'flex',
+                // Transition logic: no transition during drag, smooth otherwise
+                transition: isDragging ? 'none' : 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+
+                // Visibility & Minimize Animation
+                opacity: window.minimized ? 0 : 1,
+                transform: getTransform(),
+                pointerEvents: window.minimized ? 'none' : 'auto',
+
                 backgroundColor: 'var(--material-window-bg, rgba(255, 255, 255, 0.95))',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
