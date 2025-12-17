@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, List, Plus, Music as MusicIcon, Folder } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, List, Plus, Music as MusicIcon, Search, Maximize2, Minimize2, MoreHorizontal, Folder } from 'lucide-react';
 import clsx from 'clsx';
 import { useFileSystem } from '../store/filesystem';
+import { useWindowManager } from '../store/window-manager';
 
 interface Song {
     id: string;
@@ -10,75 +11,88 @@ interface Song {
     duration: string;
     durationSec: number;
     cover: string;
-    url?: string; // For built-in or blob url
+    url?: string;
     type: 'builtin' | 'local';
 }
 
+interface Playlist {
+    id: string;
+    name: string;
+    songIds: string[];
+}
+
 export const Music: React.FC = () => {
-    const { files, createFile, createFolder } = useFileSystem();
+    const { files, createFile, createFolder, updateFileContent } = useFileSystem();
+    const { activeWindowId, resizeWindow } = useWindowManager();
+
+    // Playback State
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentSongIndex, setCurrentSongIndex] = useState(0);
     const [progress, setProgress] = useState(0);
-    const [duration, setDuration] = useState(0); // Real duration from audio
-    const [activeView, setActiveView] = useState('Listen Now');
+    const [duration, setDuration] = useState(0);
+
+    // UI State
+    const [activeView, setActiveView] = useState('Listen Now'); // 'Listen Now', 'Songs', or playlist ID
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isMiniPlayer, setIsMiniPlayer] = useState(false);
+    const [showPlaylistModal, setShowPlaylistModal] = useState<string | null>(null); // Song ID to add
+
+    // Data State
     const [musicFolderId, setMusicFolderId] = useState<string | null>(null);
+    const [playlistsFolderId, setPlaylistsFolderId] = useState<string | null>(null);
     const [localSongs, setLocalSongs] = useState<Song[]>([]);
+    const [playlists, setPlaylists] = useState<Playlist[]>([]);
 
     const audioRef = useRef<HTMLAudioElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const BUILTIN_SONGS: Song[] = [
-        { id: '1', title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', durationSec: 200, cover: 'https://images.unsplash.com/photo-1619983081563-430f63602796?w=200&q=80', type: 'builtin', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' }, // Placeholder MP3
+        { id: '1', title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', durationSec: 200, cover: 'https://images.unsplash.com/photo-1619983081563-430f63602796?w=200&q=80', type: 'builtin', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
         { id: '2', title: 'Anti-Hero', artist: 'Taylor Swift', duration: '3:21', durationSec: 201, cover: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=200&q=80', type: 'builtin', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
         { id: '3', title: 'As It Was', artist: 'Harry Styles', duration: '2:47', durationSec: 167, cover: 'https://images.unsplash.com/photo-1504509546545-e000b4a62925?w=200&q=80', type: 'builtin', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
     ];
 
     // --- File System Init ---
     useEffect(() => {
-        // Ensure standard directory structure exists
-        // This is auto-healing logic in case of state corruption or missing valid paths
-        const ensureStructure = () => {
+        const prepareFS = () => {
             let root = Object.values(files).find(f => f.parentId === null);
-            if (!root) return; // Wait for FS init
+            if (!root) return;
 
-            // Users
-            let users = Object.values(files).find(f => f.parentId === root.id && f.name === 'Users');
-            if (!users) {
-                createFolder(root.id, 'Users');
-                // We can't proceed in this render cycle as state won't update immediately.
-                // Next render will find 'Users' and proceed.
-                return;
-            }
+            let users = Object.values(files).find(f => f.parentId === root.id && f.name === 'Users') || { id: createFolder(root.id, 'Users') };
+            // @ts-ignore
+            let user = Object.values(files).find(f => f.parentId === users.id && f.name === 'user') || { id: createFolder(users.id || users, 'user') };
 
-            // user
-            let user = Object.values(files).find(f => f.parentId === users.id && f.name === 'user');
-            if (!user) {
-                createFolder(users.id, 'user');
-                return;
-            }
-
-            // Music
+            // Music Folder
+            // @ts-ignore
             let music = Object.values(files).find(f => f.parentId === user.id && f.name === 'Music');
             if (!music) {
-                createFolder(user.id, 'Music');
-                // Don't need to return, we can wait for next cycle or optimistically assume created.
-                // But safer to wait for next cycle to setID.
-            } else {
-                setMusicFolderId(music.id);
+                // @ts-ignore
+                music = { id: createFolder(user.id, 'Music') };
             }
-        };
+            // @ts-ignore
+            setMusicFolderId(music.id);
 
-        ensureStructure();
+            // Playlists Folder
+            // @ts-ignore
+            let plFolder = Object.values(files).find(f => f.parentId === music.id && f.name === 'Playlists');
+            if (!plFolder) {
+                // @ts-ignore
+                plFolder = { id: createFolder(music.id, 'Playlists') };
+            }
+            // @ts-ignore
+            setPlaylistsFolderId(plFolder.id);
+        };
+        prepareFS();
     }, [files, createFolder]);
 
-    // --- Load Local Songs ---
+    // --- Load Data ---
     useEffect(() => {
         if (!musicFolderId) return;
 
+        // Load Songs
         const fsSongs = Object.values(files)
-            .filter(f => f.parentId === musicFolderId && (f.name.endsWith('.mp3') || f.name.endsWith('.json'))) // Handle both
+            .filter(f => f.parentId === musicFolderId && (f.name.endsWith('.mp3') || f.name.endsWith('.json')))
             .map((f) => {
-                // Check if content is JSON meta
                 let meta: any = { title: f.name.replace('.mp3', ''), artist: 'Unknown Artist', cover: null };
                 let url = f.content || '';
 
@@ -106,7 +120,63 @@ export const Music: React.FC = () => {
         setLocalSongs(fsSongs);
     }, [files, musicFolderId]);
 
+    useEffect(() => {
+        if (!playlistsFolderId) return;
+
+        // Load Playlists
+        const fsPlaylists = Object.values(files)
+            .filter(f => f.parentId === playlistsFolderId && f.name.endsWith('.json'))
+            .map(f => {
+                try {
+                    const data = JSON.parse(f.content || '{}');
+                    return { id: f.id, name: data.name || f.name.replace('.json', ''), songIds: data.songIds || [] };
+                } catch {
+                    return null;
+                }
+            })
+            .filter(Boolean) as Playlist[];
+
+        setPlaylists(fsPlaylists);
+    }, [files, playlistsFolderId]);
+
     const allSongs = [...BUILTIN_SONGS, ...localSongs];
+
+    // Filtered Songs Logic
+    const getVisibleSongs = () => {
+        let songs = allSongs;
+
+        // 1. Filter by View (Playlist or All)
+        if (activeView !== 'Listen Now' && activeView !== 'Songs' && activeView !== 'Recently Added') {
+            const playlist = playlists.find(p => p.id === activeView);
+            if (playlist) {
+                songs = allSongs.filter(s => playlist.songIds.includes(s.id));
+            }
+        }
+
+        // 2. Filter by Search
+        if (searchQuery) {
+            const lowerQuery = searchQuery.toLowerCase();
+            songs = songs.filter(s =>
+                s.title.toLowerCase().includes(lowerQuery) ||
+                s.artist.toLowerCase().includes(lowerQuery)
+            );
+        }
+
+        return songs;
+    };
+
+    const visibleSongs = getVisibleSongs();
+
+    // Find absolute index in allSongs for playback
+    const playSongFromVisible = (visibleIndex: number) => {
+        const songObj = visibleSongs[visibleIndex];
+        const realIndex = allSongs.findIndex(s => s.id === songObj.id);
+        if (realIndex !== -1) {
+            setCurrentSongIndex(realIndex);
+            setIsPlaying(true);
+        }
+    };
+
     const currentSong = allSongs[currentSongIndex] || allSongs[0];
 
     // --- Audio Logic ---
@@ -118,15 +188,14 @@ export const Music: React.FC = () => {
                 audioRef.current.pause();
             }
         }
-    }, [isPlaying, currentSongIndex, currentSong]); // Retrigger if song changes
+    }, [isPlaying, currentSong]);
 
     useEffect(() => {
-        // Update audio source when index changes
         if (audioRef.current) {
             audioRef.current.src = currentSong.url || '';
             if (isPlaying) audioRef.current.play();
         }
-    }, [currentSongIndex]);
+    }, [currentSongIndex]); // Only change source when index changes
 
     const handleTimeUpdate = () => {
         if (audioRef.current) {
@@ -135,24 +204,39 @@ export const Music: React.FC = () => {
         }
     };
 
-    const handleEnded = () => {
-        nextSong();
+    const togglePlay = () => setIsPlaying(!isPlaying);
+    const nextSong = () => setCurrentSongIndex((prev) => (prev + 1) % allSongs.length);
+    const prevSong = () => setCurrentSongIndex((prev) => (prev - 1 + allSongs.length) % allSongs.length);
+
+    // --- Actions ---
+    const handleCreatePlaylist = () => {
+        if (!playlistsFolderId) return;
+        const name = `Playlist ${playlists.length + 1}`;
+        const content = JSON.stringify({ name, songIds: [] });
+        createFile(playlistsFolderId, `${name}.json`, 'file', content);
     };
 
-    const togglePlay = () => setIsPlaying(!isPlaying);
-    const nextSong = () => {
-        setCurrentSongIndex((prev) => (prev + 1) % allSongs.length);
-    };
-    const prevSong = () => {
-        setCurrentSongIndex((prev) => (prev - 1 + allSongs.length) % allSongs.length);
+    const handleAddToPlaylist = (playlistId: string, songId: string) => {
+        const file = files[playlistId];
+        if (!file) return;
+
+        try {
+            const data = JSON.parse(file.content || '{}');
+            if (!data.songIds) data.songIds = [];
+            if (!data.songIds.includes(songId)) {
+                data.songIds.push(songId);
+                updateFileContent(playlistId, JSON.stringify(data));
+            }
+            setShowPlaylistModal(null);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        // ... (Keep existing import logic, simplified for brevity but functional)
         const file = e.target.files?.[0];
-        if (!file || !musicFolderId) {
-            console.error("No file or music folder", { file, musicFolderId });
-            return;
-        }
+        if (!file || !musicFolderId) return;
 
         console.log("Importing file:", file.name);
 
@@ -220,6 +304,16 @@ export const Music: React.FC = () => {
         reader.readAsDataURL(file);
     };
 
+    const toggleMiniPlayer = () => {
+        setIsMiniPlayer(!isMiniPlayer);
+        // Resize window logic could go here if we had access to precise window resizing constraints
+        if (!isMiniPlayer && activeWindowId) {
+            resizeWindow(activeWindowId, 300, 350);
+        } else if (isMiniPlayer && activeWindowId) {
+            resizeWindow(activeWindowId, 800, 500);
+        }
+    };
+
     const formatTime = (sec: number) => {
         if (!sec || isNaN(sec)) return "0:00";
         const m = Math.floor(sec / 60);
@@ -227,13 +321,45 @@ export const Music: React.FC = () => {
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
+    // --- Renders ---
+
+    if (isMiniPlayer) {
+        return (
+            <div className="h-full w-full bg-[#1c1c1c] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden group">
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <button onClick={toggleMiniPlayer} className="p-2 hover:bg-white/10 rounded-full">
+                        <Maximize2 size={16} />
+                    </button>
+                </div>
+
+                {/* Background Blur */}
+                <img src={currentSong.cover} className="absolute inset-0 w-full h-full object-cover opacity-30 blur-xl" />
+
+                <div className="relative z-10 w-full aspect-square mb-6 shadow-2xl rounded-xl overflow-hidden">
+                    <img src={currentSong.cover} className="w-full h-full object-cover" />
+                </div>
+
+                <div className="relative z-10 text-center mb-6">
+                    <h1 className="text-lg font-bold truncate">{currentSong.title}</h1>
+                    <p className="text-sm text-gray-400 truncate">{currentSong.artist}</p>
+                </div>
+
+                <div className="relative z-10 flex items-center gap-8">
+                    <SkipBack size={24} className="fill-white hover:opacity-70 cursor-pointer" onClick={prevSong} />
+                    <button onClick={togglePlay} className="hover:scale-105 transition-transform">
+                        {isPlaying ? <Pause size={48} fill="white" /> : <Play size={48} fill="white" />}
+                    </button>
+                    <SkipForward size={24} className="fill-white hover:opacity-70 cursor-pointer" onClick={nextSong} />
+                </div>
+
+                <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onEnded={() => nextSong()} />
+            </div>
+        );
+    }
+
     return (
         <div className="flex h-full w-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-100 font-sans select-none transition-colors duration-300">
-            <audio
-                ref={audioRef}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleEnded}
-            />
+            <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onEnded={() => nextSong()} />
 
             {/* Sidebar */}
             <div className="w-56 bg-[#F5F5F7] dark:bg-[#2c2c2e] border-r border-[#E5E5E5] dark:border-white/10 flex flex-col p-4 pt-8 shrink-0">
@@ -244,16 +370,16 @@ export const Music: React.FC = () => {
                     <span className="font-semibold text-lg tracking-tight">Music</span>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-6 overflow-y-auto flex-1">
                     <div>
                         <div className="text-[#8E8E93] text-xs font-bold px-2 mb-2">Apple Music</div>
                         {['Listen Now', 'Browse', 'Radio'].map(item => (
                             <div
                                 key={item}
-                                className={clsx("px-2 py-1.5 rounded-[4px] text-sm font-medium mb-0.5 cursor-pointer flex items-center gap-2", activeView === item ? "bg-[#E0E0E0] text-black" : "text-[#333] hover:bg-black/5")}
+                                className={clsx("px-2 py-1.5 rounded-[4px] text-sm font-medium mb-0.5 cursor-pointer flex items-center gap-2", activeView === item ? "bg-[#E0E0E0] dark:bg-white/10 text-black dark:text-white" : "text-[#333] dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5")}
                                 onClick={() => setActiveView(item)}
                             >
-                                <Play size={14} className={activeView === item ? "fill-black" : "opacity-0"} />
+                                <Play size={14} className={activeView === item ? "fill-current" : "opacity-0"} />
                                 {item}
                             </div>
                         ))}
@@ -261,15 +387,31 @@ export const Music: React.FC = () => {
 
                     <div>
                         <div className="text-[#8E8E93] text-xs font-bold px-2 mb-2">Library</div>
-                        {['Recently Added', 'Artists', 'Albums', 'Songs'].map(item => (
+                        {['Songs', 'Recently Added'].map(item => (
                             <div
                                 key={item}
-                                className={clsx("px-2 py-1.5 rounded-[4px] text-sm font-medium mb-0.5 cursor-pointer flex items-center gap-2", activeView === item ? "bg-[#E0E0E0] text-black" : "text-[#333] hover:bg-black/5")}
+                                className={clsx("px-2 py-1.5 rounded-[4px] text-sm font-medium mb-0.5 cursor-pointer flex items-center gap-2", activeView === item ? "bg-[#E0E0E0] dark:bg-white/10 text-black dark:text-white" : "text-[#333] dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5")}
                                 onClick={() => setActiveView(item)}
                             >
-                                {item === 'Recently Added' && <Folder size={14} className="text-gray-500" />}
-                                {item !== 'Recently Added' && <MusicIcon size={14} className="text-gray-500" />}
+                                <MusicIcon size={14} className="opacity-50" />
                                 {item}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between px-2 mb-2 group">
+                            <div className="text-[#8E8E93] text-xs font-bold">Playlists</div>
+                            <Plus size={14} className="text-[#8E8E93] cursor-pointer hover:text-black dark:hover:text-white opacity-0 group-hover:opacity-100 transition-opacity" onClick={handleCreatePlaylist} />
+                        </div>
+                        {playlists.map(pl => (
+                            <div
+                                key={pl.id}
+                                className={clsx("px-2 py-1.5 rounded-[4px] text-sm font-medium mb-0.5 cursor-pointer flex items-center gap-2", activeView === pl.id ? "bg-[#E0E0E0] dark:bg-white/10 text-black dark:text-white" : "text-[#333] dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5")}
+                                onClick={() => setActiveView(pl.id)}
+                            >
+                                <List size={14} className="opacity-50" />
+                                <span className="truncate">{pl.name}</span>
                             </div>
                         ))}
                     </div>
@@ -279,27 +421,39 @@ export const Music: React.FC = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#1c1c1c]">
                 <div className="flex-1 overflow-y-auto">
-                    {activeView === 'Songs' || activeView === 'Recently Added' ? (
+                    {(activeView === 'Songs' || activeView === 'Recently Added' || playlists.find(p => p.id === activeView)) ? (
                         <div className="p-8">
                             <div className="flex justify-between items-end mb-6">
                                 <div>
-                                    <h1 className="text-3xl font-bold mb-1">{activeView}</h1>
-                                    <h2 className="text-gray-500">{allSongs.length} Songs</h2>
+                                    <h1 className="text-3xl font-bold mb-1">
+                                        {playlists.find(p => p.id === activeView)?.name || activeView}
+                                    </h1>
+                                    <h2 className="text-gray-500">{visibleSongs.length} Songs</h2>
                                 </div>
-                                <div className="relative">
+                                <div className="flex gap-2">
                                     <button
-                                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+                                        className="px-4 py-2 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+                                        onClick={() => setIsMiniPlayer(true)}
+                                    >
+                                        <Minimize2 size={16} /> Mini Player
+                                    </button>
+                                    <div className="relative group">
+                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search in Songs"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-9 pr-3 py-2 bg-gray-100 dark:bg-white/5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#ff3b30]/50 w-64"
+                                        />
+                                    </div>
+                                    <button
+                                        className="px-4 py-2 bg-[#ff3b30] hover:bg-[#ff3b30]/90 text-white rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
                                         onClick={() => fileInputRef.current?.click()}
                                     >
-                                        <Plus size={16} /> Import Music
+                                        <Plus size={16} /> Import
                                     </button>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        className="hidden"
-                                        accept="audio/*"
-                                        onChange={handleImport}
-                                    />
+                                    <input type="file" ref={fileInputRef} className="hidden" accept="audio/*" onChange={handleImport} />
                                 </div>
                             </div>
 
@@ -310,24 +464,25 @@ export const Music: React.FC = () => {
                                         <th className="px-4 py-2">Title</th>
                                         <th className="px-4 py-2">Artist</th>
                                         <th className="px-4 py-2 text-right">Time</th>
+                                        <th className="px-4 py-2 w-10"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {allSongs.map((song, i) => (
+                                    {visibleSongs.map((song, i) => (
                                         <tr
                                             key={song.id}
                                             className={clsx(
                                                 "group cursor-default hover:bg-[#F2F2F2] dark:hover:bg-white/5",
-                                                currentSongIndex === i && "bg-[#F0F0F0] dark:bg-white/10 text-[#ff3b30]"
+                                                currentSong.id === song.id && "bg-[#F0F0F0] dark:bg-white/10 text-[#ff3b30]"
                                             )}
-                                            onDoubleClick={() => { setCurrentSongIndex(i); setIsPlaying(true); }}
+                                            onDoubleClick={() => playSongFromVisible(i)}
                                         >
                                             <td className="px-4 py-3 text-center relative group">
-                                                <div className={clsx("group-hover:hidden", currentSongIndex === i && "hidden")}>{i + 1}</div>
-                                                <div className={clsx("hidden", currentSongIndex === i && "block mx-auto animate-pulse")}><Volume2 size={14} /></div>
+                                                <div className={clsx("group-hover:hidden", currentSong.id === song.id && "hidden")}>{i + 1}</div>
+                                                <div className={clsx("hidden", currentSong.id === song.id && "block mx-auto animate-pulse")}><Volume2 size={14} /></div>
                                                 <div
                                                     className="absolute inset-0 flex items-center justify-center hidden group-hover:flex bg-[#F2F2F2] dark:bg-[#2c2c2e]"
-                                                    onClick={(e) => { e.stopPropagation(); setCurrentSongIndex(i); setIsPlaying(true); }}
+                                                    onClick={(e) => { e.stopPropagation(); playSongFromVisible(i); }}
                                                 >
                                                     <Play size={12} fill="currentColor" />
                                                 </div>
@@ -338,6 +493,32 @@ export const Music: React.FC = () => {
                                             </td>
                                             <td className="px-4 py-3">{song.artist}</td>
                                             <td className="px-4 py-3 text-right text-[#8E8E93] tabular-nums">{song.duration === '--:--' && song.url ? 'MP3' : song.duration}</td>
+                                            <td className="px-4 py-3 relative">
+                                                <button
+                                                    className="opacity-0 group-hover:opacity-100 hover:bg-gray-200 dark:hover:bg-white/20 p-1 rounded"
+                                                    onClick={(e) => { e.stopPropagation(); setShowPlaylistModal(song.id); }}
+                                                >
+                                                    <MoreHorizontal size={14} />
+                                                </button>
+                                                {showPlaylistModal === song.id && (
+                                                    <>
+                                                        <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setShowPlaylistModal(null); }} />
+                                                        <div className="absolute right-8 top-0 bg-white dark:bg-[#2c2c2e] shadow-xl rounded-lg border border-gray-200 dark:border-black/50 p-1 min-w-[150px] z-50">
+                                                            <div className="px-2 py-1 text-xs text-gray-500 font-bold border-b border-gray-100 dark:border-white/10 mb-1">Add to Playlist</div>
+                                                            {playlists.length === 0 && <div className="px-2 py-1 text-xs text-gray-400">No playlists</div>}
+                                                            {playlists.map(pl => (
+                                                                <div
+                                                                    key={pl.id}
+                                                                    className="px-2 py-1.5 hover:bg-blue-500 hover:text-white rounded text-xs cursor-pointer"
+                                                                    onClick={(e) => { e.stopPropagation(); handleAddToPlaylist(pl.id, song.id); }}
+                                                                >
+                                                                    {pl.name}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -345,17 +526,22 @@ export const Music: React.FC = () => {
                         </div>
                     ) : (
                         // Listen Now View
-                        <div className="p-8 pb-6 flex gap-6 items-end relative overflow-hidden">
+                        <div className="p-8 pb-6 flex gap-6 items-end relative overflow-hidden h-full">
                             <div className="absolute top-[-50%] left-[-10%] w-[120%] h-[150%] bg-gradient-to-b from-[#ff3b30]/10 to-transparent blur-3xl pointer-events-none" />
-                            <img src={currentSong.cover} className="w-44 h-44 shadow-2xl rounded-[6px] object-cover relative z-10" alt="Cover" />
-                            <div className="relative z-10 mb-2">
-                                <h2 className="text-3xl font-bold mb-1 tracking-tight">{currentSong.title}</h2>
-                                <h3 className="text-xl text-[#ff3b30] font-medium">{currentSong.artist}</h3>
-                                <div className="mt-4 flex gap-3">
-                                    <button className="px-6 py-1.5 bg-[#ff3b30] text-white rounded-[4px] text-sm font-medium hover:bg-[#ff3b30]/90 transition-colors flex items-center gap-2" onClick={togglePlay}>
-                                        {isPlaying ? <Pause size={14} fill="white" /> : <Play size={14} fill="white" />}
-                                        {isPlaying ? 'Pause' : 'Play'}
-                                    </button>
+                            <div className="relative z-10 flex gap-6 items-end w-full max-w-4xl mx-auto mb-20">
+                                <img src={currentSong.cover} className="w-64 h-64 shadow-2xl rounded-[12px] object-cover" alt="Cover" />
+                                <div className="mb-4">
+                                    <h2 className="text-4xl font-bold mb-2 tracking-tight">{currentSong.title}</h2>
+                                    <h3 className="text-2xl text-[#ff3b30] font-medium mb-6">{currentSong.artist}</h3>
+                                    <div className="flex gap-3">
+                                        <button className="px-8 py-2.5 bg-[#ff3b30] text-white rounded-[6px] text-lg font-medium hover:bg-[#ff3b30]/90 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transform transition-all" onClick={togglePlay}>
+                                            {isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" />}
+                                            {isPlaying ? 'Pause' : 'Play'}
+                                        </button>
+                                        <button className="px-4 py-2.5 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 rounded-[6px] transition-colors" onClick={() => setIsMiniPlayer(true)}>
+                                            <Minimize2 size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

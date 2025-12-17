@@ -9,7 +9,7 @@ interface SystemStore {
 
 export const useSystem = create<SystemStore>((set) => ({
     isSleeping: false,
-    isLocked: false,
+    isLocked: true, // Boot into lock screen
     setSleeping: (isSleeping) => set({ isSleeping }),
     setLocked: (isLocked) => set({ isLocked }),
 }));

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useFileSystem } from '../../store/filesystem';
 import { useSettings } from '../../store/settings';
 import { useWindowManager } from '../../store/window-manager';
@@ -6,22 +6,23 @@ import { FileIcon } from '../system/FileIcon';
 import { WindowFrame } from '../system/WindowFrame';
 
 // Apps
-import { Finder } from '../../apps/Finder';
-import { SystemSettings } from '../../apps/SystemSettings';
-import { Terminal } from '../../apps/Terminal';
-import { Safari } from '../../apps/Safari';
-import { Calculator } from '../../apps/Calculator';
-import { Calendar } from '../../apps/Calendar';
-import { Notes } from '../../apps/Notes';
-import { TextEdit } from '../../apps/TextEdit';
-import { Photos } from '../../apps/Photos';
-import { Messages } from '../../apps/Messages';
-import { Music } from '../../apps/Music';
-import { Reminders } from '../../apps/Reminders';
-import { AppStore } from '../../apps/AppStore';
-import { ActivityMonitor } from '../../apps/ActivityMonitor';
-import { VoiceMemos } from '../../apps/VoiceMemos';
-import { Preview } from '../../apps/Preview';
+// Apps - Lazy Load for Performance
+const Finder = React.lazy(() => import('../../apps/Finder').then(module => ({ default: module.Finder })));
+const SystemSettings = React.lazy(() => import('../../apps/SystemSettings').then(module => ({ default: module.SystemSettings })));
+const Terminal = React.lazy(() => import('../../apps/Terminal').then(module => ({ default: module.Terminal })));
+const Safari = React.lazy(() => import('../../apps/Safari').then(module => ({ default: module.Safari })));
+const Calculator = React.lazy(() => import('../../apps/Calculator').then(module => ({ default: module.Calculator })));
+const Calendar = React.lazy(() => import('../../apps/Calendar').then(module => ({ default: module.Calendar })));
+const Notes = React.lazy(() => import('../../apps/Notes').then(module => ({ default: module.Notes })));
+const TextEdit = React.lazy(() => import('../../apps/TextEdit').then(module => ({ default: module.TextEdit })));
+const Photos = React.lazy(() => import('../../apps/Photos').then(module => ({ default: module.Photos })));
+const Messages = React.lazy(() => import('../../apps/Messages').then(module => ({ default: module.Messages })));
+const Music = React.lazy(() => import('../../apps/Music').then(module => ({ default: module.Music })));
+const Reminders = React.lazy(() => import('../../apps/Reminders').then(module => ({ default: module.Reminders })));
+const AppStore = React.lazy(() => import('../../apps/AppStore').then(module => ({ default: module.AppStore })));
+const ActivityMonitor = React.lazy(() => import('../../apps/ActivityMonitor').then(module => ({ default: module.ActivityMonitor })));
+const VoiceMemos = React.lazy(() => import('../../apps/VoiceMemos').then(module => ({ default: module.VoiceMemos })));
+const Preview = React.lazy(() => import('../../apps/Preview').then(module => ({ default: module.Preview })));
 
 // Map apps to components
 const APP_COMPONENTS: Record<string, React.FC> = {
@@ -43,10 +44,14 @@ const APP_COMPONENTS: Record<string, React.FC> = {
     'preview': Preview,
 };
 
+import { motion } from 'framer-motion';
+import { useSystem } from '../../store/system';
+
 export const Desktop: React.FC = () => {
     const { wallpaper } = useSettings();
     const { files, getChildren } = useFileSystem();
     const { windows } = useWindowManager();
+    const { isLocked } = useSystem();
     console.log('Desktop: Windows state:', windows);
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -86,10 +91,16 @@ export const Desktop: React.FC = () => {
     };
 
     return (
-        <div
+        <motion.div
             className="absolute inset-0 z-0 bg-cover bg-center overflow-hidden"
             style={{ backgroundImage: wallpaper.includes('gradient') ? wallpaper : `url(${wallpaper})` }}
             onClick={handleBackgroundClick}
+            initial={{ scale: 1.2, filter: 'blur(10px)' }}
+            animate={{
+                scale: isLocked ? 1.1 : 1,
+                filter: isLocked ? 'blur(0px)' : 'none'
+            }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
             <div className="absolute inset-0 bg-black/10 pointer-events-none" />
 
@@ -114,10 +125,12 @@ export const Desktop: React.FC = () => {
 
                 return (
                     <WindowFrame key={window.id} window={window}>
-                        <Component {...window.props} />
+                        <Suspense fallback={<div className="flex w-full h-full items-center justify-center bg-white/50 dark:bg-[#1c1c1c]/50"><span className="animate-spin h-5 w-5 border-2 border-gray-500 border-t-transparent rounded-full" /></div>}>
+                            <Component {...window.props} />
+                        </Suspense>
                     </WindowFrame>
                 );
             })}
-        </div>
+        </motion.div>
     );
 };

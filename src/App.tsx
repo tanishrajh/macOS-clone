@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useFileSystem } from './store/filesystem';
 import { useSettings } from './store/settings';
 import { BootSequence } from './components/system/BootSequence';
+import { LoginScreen } from './components/system/LoginScreen';
 
 // Components
 import { Desktop } from './components/desktop/Desktop';
@@ -57,6 +58,7 @@ function App() {
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-center bg-cover relative font-sans text-white select-none">
+      <LoginScreen />
       <Desktop />
       <MenuBar />
       <Dock />

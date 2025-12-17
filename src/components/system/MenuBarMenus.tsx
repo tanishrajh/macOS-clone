@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useWindowManager } from '../../store/window-manager';
 
@@ -89,27 +90,36 @@ export const MenuBarMenus: React.FC = () => {
                         {menuName}
                     </div>
 
-                    {activeMenu === menuName && (
-                        <>
-                            <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setActiveMenu(null)} />
-                            <div className="absolute top-full left-0 mt-1 min-w-[200px] bg-[#E5E5E5]/90 dark:bg-[#1e1e1e]/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-lg shadow-xl py-1 text-black dark:text-white z-50">
-                                {items.map((item, idx) => {
-                                    if ('divider' in item) {
-                                        return <div key={idx} className="h-px bg-gray-300/50 dark:bg-white/10 my-1 mx-3" />;
-                                    }
-                                    return (
-                                        <div
-                                            key={idx}
-                                            className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default text-sm"
-                                            onClick={() => handleAction(item.action!)}
-                                        >
-                                            {item.label}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </>
-                    )}
+                    <AnimatePresence>
+                        {activeMenu === menuName && (
+                            <>
+                                <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setActiveMenu(null)} />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0, x: -10, y: -10, filter: "blur(10px)" }}
+                                    animate={{ opacity: 1, scale: 1, x: 0, y: 0, filter: "blur(0px)" }}
+                                    exit={{ opacity: 0, scale: 0, x: -10, y: -10, filter: "blur(10px)" }}
+                                    transition={{ duration: 0.15, ease: "easeOut" }}
+                                    style={{ transformOrigin: "top left" }}
+                                    className="absolute top-full left-0 mt-1 min-w-[200px] bg-[#E5E5E5]/90 dark:bg-[#1e1e1e]/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-lg shadow-xl py-1 text-black dark:text-white z-50"
+                                >
+                                    {items.map((item, idx) => {
+                                        if ('divider' in item) {
+                                            return <div key={idx} className="h-px bg-gray-300/50 dark:bg-white/10 my-1 mx-3" />;
+                                        }
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default text-sm"
+                                                onClick={() => handleAction(item.action!)}
+                                            >
+                                                {item.label}
+                                            </div>
+                                        );
+                                    })}
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
                 </div>
             ))}
         </div>
