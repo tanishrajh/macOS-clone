@@ -9,16 +9,21 @@ import { WindowFrame } from '../system/WindowFrame';
 import { Finder } from '../../apps/Finder';
 import { SystemSettings } from '../../apps/SystemSettings';
 import { Terminal } from '../../apps/Terminal';
-
-// Placeholder Apps
-const SafariApp = () => <div className="w-full h-full bg-white"><iframe src="https://www.bing.com" className="w-full h-full border-0" title="Safari" /></div>;
+import { Safari } from '../../apps/Safari';
+import { Calculator } from '../../apps/Calculator';
+import { Calendar } from '../../apps/Calendar';
 
 // Map apps to components
 const APP_COMPONENTS: Record<string, React.FC> = {
     'finder': Finder,
-    'safari': SafariApp,
+    'safari': Safari,
     'terminal': Terminal,
     'settings': SystemSettings,
+    'calculator': Calculator,
+    'calendar': Calendar,
+    'messages': () => <div className="flex items-center justify-center h-full bg-white text-gray-400">Messages (Coming Soon)</div>,
+    'photos': () => <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400">Photos (Coming Soon)</div>,
+    'music': () => <div className="flex items-center justify-center h-full bg-white text-gray-400">Music (Coming Soon)</div>,
 };
 
 export const Desktop: React.FC = () => {
