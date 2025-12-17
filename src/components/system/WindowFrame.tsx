@@ -63,8 +63,8 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 window.isForeground ? "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]" : "shadow-xl border border-black/5 opacity-90 grayscale-[0.2]",
             )}
             style={{
-                left: window.x,
-                top: window.y,
+                left: window.maximized ? 0 : window.x,
+                top: window.maximized ? 0 : window.y,
                 width: window.maximized ? '100%' : window.width,
                 height: window.maximized ? '100%' : window.height,
                 zIndex: window.zIndex,
