@@ -1,10 +1,11 @@
 import React from 'react';
 import { useSettings } from '../store/settings';
-import { Monitor, Dock, Type, Palette } from 'lucide-react';
+import { Monitor, Dock, Palette } from 'lucide-react';
 import clsx from 'clsx';
 
 export const SystemSettings: React.FC = () => {
-    const { theme, setTheme, wallpaper, setWallpaper } = useSettings();
+    const { theme, setTheme, wallpaper, setWallpaper, dockSize, setDockSize } = useSettings();
+    const [activeTab, setActiveTab] = React.useState('wallpaper');
 
     const WALLPAPERS = [
         'https://images.unsplash.com/photo-1620641788421-7f1c918ec0c0?q=80&w=2574&auto=format&fit=crop', // Big Sur
@@ -28,61 +29,96 @@ export const SystemSettings: React.FC = () => {
                     </div>
                 </div>
 
-                <SettingsItem icon={Monitor} label="Wallpaper" active />
-                <SettingsItem icon={Palette} label="Appearance" />
-                <SettingsItem icon={Dock} label="Desktop & Dock" />
-                <SettingsItem icon={Type} label="Displays" />
+                <SettingsItem icon={Monitor} label="Wallpaper" active={activeTab === 'wallpaper'} onClick={() => setActiveTab('wallpaper')} />
+                <SettingsItem icon={Palette} label="Appearance" active={activeTab === 'appearance'} onClick={() => setActiveTab('appearance')} />
+                <SettingsItem icon={Dock} label="Desktop & Dock" active={activeTab === 'dock'} onClick={() => setActiveTab('dock')} />
             </div>
 
             {/* Content */}
             <div className="flex-1 p-8 pt-12 overflow-y-auto">
-                <h2 className="text-xl font-bold mb-6">Wallpaper</h2>
-
-                {/* Theme Toggle */}
-                <div className="mb-8">
-                    <div className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-warn">Appearance</div>
-                    <div className="flex gap-4">
-                        <div
-                            className={clsx("flex flex-col items-center gap-2 cursor-pointer", theme === 'light' && "opacity-100")}
-                            onClick={() => setTheme('light')}
-                        >
-                            <div className="w-16 h-12 bg-white border border-gray-200 rounded-md shadow-sm" />
-                            <span>Light</span>
+                {activeTab === 'wallpaper' && (
+                    <>
+                        <h2 className="text-xl font-bold mb-6">Wallpaper</h2>
+                        <div className="grid grid-cols-3 gap-4">
+                            {WALLPAPERS.map((wp, i) => (
+                                <div
+                                    key={i}
+                                    className={clsx(
+                                        "aspect-video rounded-lg cursor-pointer border-2 transition-all hover:scale-105 active:scale-95",
+                                        wallpaper === wp ? "border-blue-500" : "border-transparent"
+                                    )}
+                                    style={{ background: wp, backgroundSize: 'cover' }}
+                                    onClick={() => setWallpaper(wp)}
+                                />
+                            ))}
                         </div>
-                        <div
-                            className={clsx("flex flex-col items-center gap-2 cursor-pointer", theme === 'dark' && "opacity-100")}
-                            onClick={() => setTheme('dark')}
-                        >
-                            <div className="w-16 h-12 bg-gray-800 border border-gray-700 rounded-md shadow-sm" />
-                            <span>Dark</span>
-                        </div>
-                    </div>
-                </div>
+                    </>
+                )}
 
-                <div className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-warn">Wallpapers</div>
-                <div className="grid grid-cols-3 gap-4">
-                    {WALLPAPERS.map((wp, i) => (
-                        <div
-                            key={i}
-                            className={clsx(
-                                "aspect-video rounded-lg cursor-pointer border-2 transition-all hover:scale-105 active:scale-95",
-                                wallpaper === wp ? "border-blue-500" : "border-transparent"
-                            )}
-                            style={{ background: wp, backgroundSize: 'cover' }}
-                            onClick={() => setWallpaper(wp)}
-                        />
-                    ))}
-                </div>
+                {activeTab === 'appearance' && (
+                    <>
+                        <h2 className="text-xl font-bold mb-6">Appearance</h2>
+                        <div className="mb-8">
+                            <div className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-warn">Appearance</div>
+                            <div className="flex gap-4">
+                                <div
+                                    className={clsx("flex flex-col items-center gap-2 cursor-pointer", theme === 'light' && "opacity-100")}
+                                    onClick={() => setTheme('light')}
+                                >
+                                    <div className="w-16 h-12 bg-white border border-gray-200 rounded-md shadow-sm" />
+                                    <span>Light</span>
+                                </div>
+                                <div
+                                    className={clsx("flex flex-col items-center gap-2 cursor-pointer", theme === 'dark' && "opacity-100")}
+                                    onClick={() => setTheme('dark')}
+                                >
+                                    <div className="w-16 h-12 bg-gray-800 border border-gray-700 rounded-md shadow-sm" />
+                                    <span>Dark</span>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {activeTab === 'dock' && (
+                    <>
+                        <h2 className="text-xl font-bold mb-6">Desktop & Dock</h2>
+                        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="font-medium">Size</span>
+                                <div className="flex items-center gap-3 w-1/2">
+                                    <span className="text-xs text-gray-400">Small</span>
+                                    <input
+                                        type="range"
+                                        min="40"
+                                        max="100"
+                                        value={dockSize}
+                                        onChange={(e) => setDockSize(Number(e.target.value))}
+                                        className="flex-1 accent-blue-500 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <span className="text-xs text-gray-400">Large</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="font-medium">Magnification</span>
+                                <input type="checkbox" defaultChecked className="toggle-checkbox" />
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
 };
 
-const SettingsItem = ({ icon: Icon, label, active = false }: any) => (
-    <div className={clsx(
-        "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-default mb-0.5",
-        active ? "bg-[#007AFF] text-white" : "hover:bg-black/5 text-gray-700"
-    )}>
+const SettingsItem = ({ icon: Icon, label, active = false, onClick }: any) => (
+    <div
+        className={clsx(
+            "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-default mb-0.5",
+            active ? "bg-[#007AFF] text-white" : "hover:bg-black/5 text-gray-700"
+        )}
+        onClick={onClick}
+    >
         <Icon size={16} />
         <span className="font-medium">{label}</span>
     </div>

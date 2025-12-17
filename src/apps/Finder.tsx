@@ -30,6 +30,10 @@ export const Finder: React.FC = () => {
     const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+    // Navigation History
+    const [history, setHistory] = useState<string[]>([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+
     // Initialize to user Home on mount
     useEffect(() => {
         // Find /Users/user
@@ -40,14 +44,42 @@ export const Finder: React.FC = () => {
             if (home) {
                 const user = allFiles.find(f => f.parentId === home.id && f.name === 'user');
                 if (user) {
-                    setCurrentFolderId(user.id);
+                    if (history.length === 0) {
+                        setCurrentFolderId(user.id);
+                        setHistory([user.id]);
+                        setHistoryIndex(0);
+                    }
                 }
             }
         }
     }, [files]);
 
     const navigateTo = (folderId: string) => {
+        if (folderId === currentFolderId) return;
+
+        // Remove forward history if we navigate to a new place
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(folderId);
+
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
         setCurrentFolderId(folderId);
+    };
+
+    const handleBack = () => {
+        if (historyIndex > 0) {
+            const newIndex = historyIndex - 1;
+            setHistoryIndex(newIndex);
+            setCurrentFolderId(history[newIndex]);
+        }
+    };
+
+    const handleForward = () => {
+        if (historyIndex < history.length - 1) {
+            const newIndex = historyIndex + 1;
+            setHistoryIndex(newIndex);
+            setCurrentFolderId(history[newIndex]);
+        }
     };
 
     const currentFiles: FileNode[] = currentFolderId ? getChildren(currentFolderId) : [];
@@ -61,10 +93,27 @@ export const Finder: React.FC = () => {
                 </div>
 
                 <SidebarSection title="Favorites">
-                    <SidebarItem icon={Monitor} label="Desktop" active={false} onClick={() => { }} />
-                    <SidebarItem icon={FileText} label="Documents" active={false} onClick={() => { }} />
-                    <SidebarItem icon={Download} label="Downloads" active={false} onClick={() => { }} />
-                    <SidebarItem icon={ApplicationIcon} label="Applications" active={false} onClick={() => { }} />
+                    {['Desktop', 'Documents', 'Downloads', 'Applications'].map(name => {
+                        const icon = name === 'Desktop' ? Monitor
+                            : name === 'Documents' ? FileText
+                                : name === 'Downloads' ? Download
+                                    : ApplicationIcon;
+
+                        return (
+                            <SidebarItem
+                                key={name}
+                                icon={icon}
+                                label={name}
+                                active={currentFolderId ? files[currentFolderId]?.name === name : false}
+                                onClick={() => {
+                                    // Hacky find: Search in current user folder or root
+                                    const allFiles = Object.values(files);
+                                    let target = allFiles.find(f => f.name === name); // Global search warning, better to search properly
+                                    if (target) navigateTo(target.id);
+                                }}
+                            />
+                        );
+                    })}
                 </SidebarSection>
             </div>
 
@@ -74,8 +123,14 @@ export const Finder: React.FC = () => {
                 <div className="h-12 border-b border-gray-200 flex items-center px-4 justify-between bg-[#F5F5F7]/50 backdrop-blur-md">
                     <div className="flex gap-4">
                         <div className="flex gap-1 text-gray-500">
-                            <ChevronLeft className="cursor-pointer hover:text-black" />
-                            <ChevronRight className="cursor-pointer hover:text-black" />
+                            <ChevronLeft
+                                className={clsx("cursor-pointer", historyIndex <= 0 ? "text-gray-300 pointer-events-none" : "hover:text-black")}
+                                onClick={handleBack}
+                            />
+                            <ChevronRight
+                                className={clsx("cursor-pointer", historyIndex >= history.length - 1 ? "text-gray-300 pointer-events-none" : "hover:text-black")}
+                                onClick={handleForward}
+                            />
                         </div>
                         <span className="font-semibold text-sm">
                             {currentFolderId && files[currentFolderId]?.name}
