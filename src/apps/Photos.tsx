@@ -1,10 +1,36 @@
 import React from 'react';
+import { useFileSystem } from '../store/filesystem';
 
 export const Photos: React.FC = () => {
+    const { files } = useFileSystem();
     const [activeTab, setActiveTab] = React.useState('Library');
     const [selectedPhoto, setSelectedPhoto] = React.useState<string | null>(null);
+    const [picturesFolderId, setPicturesFolderId] = React.useState<string | null>(null);
 
-    const PHOTOS = [
+    // Initial Photos if empty
+    React.useEffect(() => {
+        const root = Object.values(files).find(f => f.parentId === null);
+        if (root) {
+            const user = Object.values(files).find(f => f.parentId === Object.values(files).find(x => x.parentId === root.id && x.name === 'Users')?.id && f.name === 'user');
+            if (user) {
+                const picFolder = Object.values(files).find(f => f.parentId === user.id && f.name === 'Pictures');
+                if (picFolder) {
+                    setPicturesFolderId(picFolder.id);
+
+                    // Allow "Import" via drag drop later, for now just read files
+                }
+            }
+        }
+    }, [files]);
+
+    const photosFromFS = React.useMemo(() => {
+        if (!picturesFolderId) return [];
+        return Object.values(files)
+            .filter(f => f.parentId === picturesFolderId && (f.name.endsWith('.png') || f.name.endsWith('.jpg') || f.name.endsWith('.jpeg')))
+            .map(f => f.content || ''); // Content is URL
+    }, [files, picturesFolderId]);
+
+    const DEFAULT_PHOTOS = [
         'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60',
         'https://images.unsplash.com/photo-1518098268026-4e1877433641?w=800&auto=format&fit=crop&q=60',
         'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&auto=format&fit=crop&q=60',
@@ -15,9 +41,11 @@ export const Photos: React.FC = () => {
         'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&auto=format&fit=crop&q=60',
     ];
 
-    const displayPhotos = activeTab === 'Library' ? PHOTOS :
-        activeTab === 'Favorites' ? PHOTOS.slice(0, 3) :
-            PHOTOS.slice(4, 7);
+    const allPhotos = [...DEFAULT_PHOTOS, ...photosFromFS];
+
+    const displayPhotos = activeTab === 'Library' ? allPhotos :
+        activeTab === 'Favorites' ? allPhotos.slice(0, 3) :
+            allPhotos.slice(4, 7);
 
     return (
         <div className="flex h-full w-full bg-white text-black font-sans relative">

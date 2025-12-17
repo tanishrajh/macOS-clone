@@ -26,14 +26,25 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
     windowOrder: [],
 
     openWindow: (appId, title, config = {}) => {
-        const { windows, windowOrder, focusWindow } = get();
+        const { windows, windowOrder } = get();
 
         // Check if a window for this app already exists
         const existingWindowId = Object.keys(windows).find(id => windows[id].appId === appId);
 
         if (existingWindowId) {
-            // If it exists, focus/toggle it
-            focusWindow(existingWindowId, true);
+            // If it exists, focus/toggle it and update props if provided
+            set((state) => ({
+                windows: {
+                    ...state.windows,
+                    [existingWindowId]: {
+                        ...state.windows[existingWindowId],
+                        minimized: false,
+                        props: config.props || state.windows[existingWindowId].props
+                    }
+                },
+                activeWindowId: existingWindowId,
+                windowOrder: [...state.windowOrder.filter(id => id !== existingWindowId), existingWindowId]
+            }));
             return;
         }
 
@@ -55,6 +66,7 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
             minimized: false,
             maximized: false,
             isForeground: true,
+            props: config.props,
             ...config
         };
 

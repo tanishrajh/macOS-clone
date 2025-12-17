@@ -20,6 +20,8 @@ import { Music } from '../../apps/Music';
 import { Reminders } from '../../apps/Reminders';
 import { AppStore } from '../../apps/AppStore';
 import { ActivityMonitor } from '../../apps/ActivityMonitor';
+import { VoiceMemos } from '../../apps/VoiceMemos';
+import { Preview } from '../../apps/Preview';
 
 // Map apps to components
 const APP_COMPONENTS: Record<string, React.FC> = {
@@ -37,6 +39,8 @@ const APP_COMPONENTS: Record<string, React.FC> = {
     'reminders': Reminders,
     'appstore': AppStore,
     'activity': ActivityMonitor,
+    'voicememos': VoiceMemos,
+    'preview': Preview,
 };
 
 export const Desktop: React.FC = () => {
@@ -105,10 +109,12 @@ export const Desktop: React.FC = () => {
 
             {/* Windows Layer */}
             {Object.values(windows).map((window) => {
-                const AppComponent = APP_COMPONENTS[window.appId] || (() => <div className="p-4 text-gray-500">App not implemented</div>);
+                const Component = APP_COMPONENTS[window.appId] || (() => <div className="p-4 text-gray-500">App not implemented</div>);
+                if (!Component) return null;
+
                 return (
                     <WindowFrame key={window.id} window={window}>
-                        <AppComponent />
+                        <Component {...window.props} />
                     </WindowFrame>
                 );
             })}

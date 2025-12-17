@@ -35,10 +35,12 @@ export const useFileSystem = create<FileSystemStore>((set, get) => ({
         // Try load from DB
         const persisted = (await getDB(DB_KEY)) as Record<string, FileNode>;
 
-        if (persisted) {
+        if (persisted && Object.values(persisted).some(f => f.parentId === null)) {
+            // Valid persistence found (has root)
             set({ files: persisted, initialized: true });
         } else {
-            // First boot
+            console.warn("FileSystem: No valid root found in DB. Resetting to initial state.");
+            // First boot or corrupted
             const initial = generateInitialFileSystem();
             await setDB(DB_KEY, initial);
             set({ files: initial, initialized: true });

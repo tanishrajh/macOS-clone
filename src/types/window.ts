@@ -14,6 +14,9 @@ export interface WindowState {
     // App specific state that might need to be preserved in window
     // e.g. current path in finder
     meta?: any;
+
+    // Props to pass to the component
+    props?: any;
 }
 
 export interface AppConfig {

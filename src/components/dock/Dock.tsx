@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useWindowManager } from '../../store/window-manager';
-import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid, Notebook, FileText, Activity, CheckSquare, ShoppingBag } from 'lucide-react';
+import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid, Notebook, FileText, Activity, CheckSquare, ShoppingBag, Mic } from 'lucide-react';
 import clsx from 'clsx';
 
 const DOCK_APPS = [
@@ -12,6 +12,7 @@ const DOCK_APPS = [
     { id: 'photos', name: 'Photos', icon: Image, color: 'bg-gradient-to-tr from-orange-400 via-red-500 to-purple-600', running: false },
     { id: 'reminders', name: 'Reminders', icon: CheckSquare, color: 'bg-white text-orange-500', running: false },
     { id: 'notes', name: 'Notes', icon: Notebook, color: 'bg-yellow-400', running: false },
+    { id: 'voicememos', name: 'Voice Memos', icon: Mic, color: 'bg-white text-red-500', running: false },
     { id: 'textedit', name: 'TextEdit', icon: FileText, color: 'bg-gray-600', running: false },
     { id: 'calendar', name: 'Calendar', icon: Calendar, color: 'bg-white text-red-500', running: true },
     { id: 'music', name: 'Music', icon: Music, color: 'bg-red-500', running: false },

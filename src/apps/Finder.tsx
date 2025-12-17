@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFileSystem } from '../store/filesystem';
+// @ts-ignore
+import { useWindowManager } from '../store/window-manager';
 import { Folder, FileText, Download, Monitor, ChevronRight, ChevronLeft, Search, LayoutGrid, List as ListIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { format } from 'date-fns';
@@ -27,6 +29,7 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
 
 export const Finder: React.FC = () => {
     const { files, getChildren } = useFileSystem();
+    const { openWindow } = useWindowManager();
     const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -38,20 +41,23 @@ export const Finder: React.FC = () => {
     useEffect(() => {
         // Find /Users/user
         const allFiles = Object.values(files) as FileNode[];
+        console.log("Finder: All Files", allFiles.length);
         const root = allFiles.find(f => f.parentId === null);
         if (root) {
             const home = allFiles.find(f => f.parentId === root.id && f.name === 'Users');
             if (home) {
                 const user = allFiles.find(f => f.parentId === home.id && f.name === 'user');
+                console.log("Finder: User folder found", user);
                 if (user) {
                     if (history.length === 0) {
+                        console.log("Finder: Setting current folder to user", user.id);
                         setCurrentFolderId(user.id);
                         setHistory([user.id]);
                         setHistoryIndex(0);
                     }
                 }
-            }
-        }
+            } else { console.log("Finder: Users folder missing"); }
+        } else { console.log("Finder: Root missing"); }
     }, [files]);
 
     const navigateTo = (folderId: string) => {
@@ -83,6 +89,43 @@ export const Finder: React.FC = () => {
     };
 
     const currentFiles: FileNode[] = currentFolderId ? getChildren(currentFolderId) : [];
+
+    if (!currentFolderId) {
+        return (
+            <div className="flex h-full w-full bg-white text-black font-sans items-center justify-center flex-col gap-4">
+                <div className="text-red-500 font-bold">Finder Error: No Folder Selected</div>
+                <div className="text-xs text-gray-500 text-left bg-gray-100 p-4 rounded">
+                    <div>Files Loaded: {Object.keys(files).length}</div>
+                    <div>Root Found: {Object.values(files).find(f => f.parentId === null) ? 'Yes' : 'No'}</div>
+                    <button
+                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={() => {
+                            // Manual Rescue
+                            const root = Object.values(files).find(f => f.parentId === null);
+                            if (root) {
+                                const users = Object.values(files).find(f => f.parentId === root.id && f.name === 'Users');
+                                if (users) {
+                                    const user = Object.values(files).find(f => f.parentId === users.id && f.name === 'user');
+                                    if (user) setCurrentFolderId(user.id);
+                                    else setCurrentFolderId(users.id);
+                                } else {
+                                    setCurrentFolderId(root.id);
+                                }
+                            }
+                        }}
+                    >
+                        Try Force Navigate Home
+                    </button>
+                    <button
+                        className="mt-2 ml-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                        onClick={() => console.log(files)}
+                    >
+                        Log Files to Console
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-full w-full bg-white text-black font-sans">
@@ -149,7 +192,20 @@ export const Finder: React.FC = () => {
                     {viewMode === 'grid' ? (
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-4">
                             {currentFiles.map((file) => (
-                                <div key={file.id} onDoubleClick={() => file.type === 'folder' && navigateTo(file.id)}>
+                                <div key={file.id} onDoubleClick={() => {
+                                    if (file.type === 'folder') {
+                                        navigateTo(file.id);
+                                    } else {
+                                        // Simple file opener logic
+                                        if (file.name.endsWith('.png') || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg')) {
+                                            openWindow('preview', file.name, { props: { fileId: file.id } });
+                                        } else if (file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.json')) {
+                                            openWindow('textedit', file.name, { props: { fileId: file.id } }); // TextEdit needs update to support props too if we want it to open, but focusing on Preview first
+                                        } else if (file.name.endsWith('.mp3')) {
+                                            openWindow('music', 'Music'); // Music handles its own library for now
+                                        }
+                                    }
+                                }}>
                                     <FileIcon file={file} selected={false} onClick={() => { }} showLabel={true} darkLabel />
                                 </div>
                             ))}
