@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion, useDragControls } from 'framer-motion';
+import React, { useRef, useState, useEffect } from 'react';
 import { X, Minus, Maximize2 } from 'lucide-react';
 import { useWindowManager } from '../../store/window-manager';
 import type { WindowState } from '../../types/window';
@@ -12,7 +11,8 @@ interface WindowFrameProps {
 
 export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow } = useWindowManager();
-    const dragging = useDragControls();
+    const [isDragging, setIsDragging] = useState(false);
+    const dragOffset = useRef({ x: 0, y: 0 });
 
     const handlePointerDown = () => {
         if (!window.isForeground) {
@@ -20,44 +20,66 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         }
     };
 
+    const handleDragStart = (e: React.PointerEvent) => {
+        if (window.maximized) return;
+        e.preventDefault();
+        e.stopPropagation(); // Prevent bubbling to window logic if any
+        setIsDragging(true);
+        dragOffset.current = {
+            x: e.clientX - window.x,
+            y: e.clientY - window.y
+        };
+        focusWindow(window.id);
+    };
+
+    useEffect(() => {
+        if (isDragging) {
+            const handlePointerMove = (e: PointerEvent) => {
+                moveWindow(
+                    window.id,
+                    e.clientX - dragOffset.current.x,
+                    e.clientY - dragOffset.current.y
+                );
+            };
+
+            const handlePointerUp = () => {
+                setIsDragging(false);
+            };
+
+            document.addEventListener('pointermove', handlePointerMove);
+            document.addEventListener('pointerup', handlePointerUp);
+
+            return () => {
+                document.removeEventListener('pointermove', handlePointerMove);
+                document.removeEventListener('pointerup', handlePointerUp);
+            };
+        }
+    }, [isDragging, window.id, moveWindow]);
+
     return (
-        <motion.div
-            initial={{ scale: 0.95, opacity: 1 }}
-            animate={{
-                scale: window.minimized ? 0.5 : window.maximized ? 1 : 1,
-                opacity: window.minimized ? 0 : 1,
-                x: window.x,
-                y: window.y,
-                width: window.maximized ? '100%' : window.width,
-                height: window.maximized ? '100%' : window.height,
-                zIndex: window.zIndex
-            }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+        <div
             className={clsx(
                 "absolute flex flex-col overflow-hidden rounded-xl shadow-2xl",
                 window.isForeground ? "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]" : "shadow-xl border border-black/5 opacity-90 grayscale-[0.2]",
             )}
             style={{
-                backgroundColor: 'var(--material-window-bg, rgba(255, 255, 255, 0.85))',
+                left: window.x,
+                top: window.y,
+                width: window.maximized ? '100%' : window.width,
+                height: window.maximized ? '100%' : window.height,
+                zIndex: window.zIndex,
+                display: window.minimized ? 'none' : 'flex',
+                backgroundColor: 'var(--material-window-bg, rgba(255, 255, 255, 0.95))',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: 'var(--window-border, 1px solid rgba(0,0,0,0.1))'
             }}
             onPointerDown={handlePointerDown}
-            drag={!window.maximized}
-            dragListener={false} // Use controls
-            dragControls={dragging}
-            dragMomentum={false}
-            dragElastic={0.1}
-            onDragEnd={(_, info) => {
-                moveWindow(window.id, window.x + info.offset.x, window.y + info.offset.y);
-            }}
         >
             {/* Title Bar */}
             <div
-                className="h-10 w-full flex items-center justify-between px-4 select-none shrink-0"
-                onPointerDown={(e) => dragging.start(e)}
+                className="h-10 w-full flex items-center justify-between px-4 select-none shrink-0 bg-gray-100/10"
+                onPointerDown={handleDragStart}
             >
                 <div className="flex gap-2">
                     {/* Traffic Lights */}
@@ -84,16 +106,14 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 </div>
 
                 <div className="text-sm font-semibold text-gray-700/80 pointer-events-none">{window.title}</div>
-
-                {/* Spacer for centering logic if needed */}
                 <div className="w-16"></div>
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 w-full h-full overflow-hidden relative bg-white/50">
+            <div className="flex-1 w-full h-full overflow-hidden relative bg-white">
                 {children}
             </div>
 
-        </motion.div>
+        </div>
     );
 };
