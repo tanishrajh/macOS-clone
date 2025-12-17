@@ -12,6 +12,11 @@ import { Terminal } from '../../apps/Terminal';
 import { Safari } from '../../apps/Safari';
 import { Calculator } from '../../apps/Calculator';
 import { Calendar } from '../../apps/Calendar';
+import { Notes } from '../../apps/Notes';
+import { TextEdit } from '../../apps/TextEdit';
+import { Photos } from '../../apps/Photos';
+import { Messages } from '../../apps/Messages';
+import { Music } from '../../apps/Music';
 
 // Map apps to components
 const APP_COMPONENTS: Record<string, React.FC> = {
@@ -21,9 +26,11 @@ const APP_COMPONENTS: Record<string, React.FC> = {
     'settings': SystemSettings,
     'calculator': Calculator,
     'calendar': Calendar,
-    'messages': () => <div className="flex items-center justify-center h-full bg-white text-gray-400">Messages (Coming Soon)</div>,
-    'photos': () => <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400">Photos (Coming Soon)</div>,
-    'music': () => <div className="flex items-center justify-center h-full bg-white text-gray-400">Music (Coming Soon)</div>,
+    'notes': Notes,
+    'textedit': TextEdit,
+    'photos': Photos,
+    'messages': Messages,
+    'music': Music,
 };
 
 export const Desktop: React.FC = () => {

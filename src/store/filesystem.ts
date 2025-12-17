@@ -11,6 +11,7 @@ interface FileSystemStore {
     // Actions
     initialize: () => Promise<void>;
     createFile: (parentId: string, name: string, type: 'file' | 'folder', content?: string) => string;
+    createFolder: (parentId: string, name: string) => string;
     deleteFile: (id: string) => void;
     renameFile: (id: string, newName: string) => void;
     updateFileContent: (id: string, content: string) => void;
@@ -64,6 +65,27 @@ export const useFileSystem = create<FileSystemStore>((set, get) => ({
             return { files: next };
         });
 
+        return id;
+    },
+
+    createFolder: (parentId, name) => {
+        const id = uuidv4();
+        const newFolder: FileNode = {
+            id,
+            parentId,
+            name,
+            type: 'folder',
+            content: null,
+            createdAt: Date.now(),
+            modifiedAt: Date.now(),
+            position: { x: 0, y: 0 }
+        };
+
+        set((state) => {
+            const newFiles = { ...state.files, [id]: newFolder };
+            setDB(DB_KEY, newFiles);
+            return { files: newFiles };
+        });
         return id;
     },
 

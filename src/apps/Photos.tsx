@@ -1,0 +1,69 @@
+import React from 'react';
+
+export const Photos: React.FC = () => {
+    const [activeTab, setActiveTab] = React.useState('Library');
+    const [selectedPhoto, setSelectedPhoto] = React.useState<string | null>(null);
+
+    const PHOTOS = [
+        'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60',
+        'https://images.unsplash.com/photo-1518098268026-4e1877433641?w=800&auto=format&fit=crop&q=60',
+        'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&auto=format&fit=crop&q=60',
+        'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=800&auto=format&fit=crop&q=60',
+        'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=800&auto=format&fit=crop&q=60',
+        'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=800&auto=format&fit=crop&q=60',
+        'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop&q=60',
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&auto=format&fit=crop&q=60',
+    ];
+
+    const displayPhotos = activeTab === 'Library' ? PHOTOS :
+        activeTab === 'Favorites' ? PHOTOS.slice(0, 3) :
+            PHOTOS.slice(4, 7);
+
+    return (
+        <div className="flex h-full w-full bg-white text-black font-sans relative">
+            {/* Sidebar */}
+            <div className="w-48 bg-[#F5F5F7] border-r border-gray-200 hidden md:flex flex-col p-4 pt-6">
+                <div className="text-gray-500 text-xs font-bold uppercase mb-2">Library</div>
+                {['Library', 'Favorites', 'Recents'].map(tab => (
+                    <div
+                        key={tab}
+                        className={`px-2 py-1 rounded-md text-sm font-medium mb-1 cursor-pointer hover:bg-black/5 ${activeTab === tab ? 'bg-[#E0E0E0] text-black' : 'text-gray-700'}`}
+                        onClick={() => setActiveTab(tab)}
+                    >
+                        {tab}
+                    </div>
+                ))}
+            </div>
+
+            {/* Grid */}
+            <div className="flex-1 overflow-y-auto p-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {displayPhotos.map((src, i) => (
+                        <div
+                            key={i}
+                            className="aspect-square relative group overflow-hidden bg-gray-100 cursor-pointer"
+                            onClick={() => setSelectedPhoto(src)}
+                        >
+                            <img src={src} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Preview Modal */}
+            {selectedPhoto && (
+                <div className="absolute inset-0 z-50 bg-black/90 flex items-center justify-center p-8 backdrop-blur-sm" onClick={() => setSelectedPhoto(null)}>
+                    <img
+                        src={selectedPhoto}
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                    <button className="absolute top-4 right-4 text-white/50 hover:text-white" onClick={() => setSelectedPhoto(null)}>
+                        ✕
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};

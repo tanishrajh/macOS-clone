@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useWindowManager } from '../../store/window-manager';
-import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid } from 'lucide-react';
+import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid, Notebook, FileText } from 'lucide-react';
 import clsx from 'clsx';
 
 const DOCK_APPS = [
@@ -10,6 +10,8 @@ const DOCK_APPS = [
     { id: 'safari', name: 'Safari', icon: Globe, color: 'bg-white text-blue-500', running: false },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-green-500', running: false },
     { id: 'photos', name: 'Photos', icon: Image, color: 'bg-gradient-to-tr from-orange-400 via-red-500 to-purple-600', running: false },
+    { id: 'notes', name: 'Notes', icon: Notebook, color: 'bg-yellow-400', running: false },
+    { id: 'textedit', name: 'TextEdit', icon: FileText, color: 'bg-gray-600', running: false },
     { id: 'calendar', name: 'Calendar', icon: Calendar, color: 'bg-white text-red-500', running: true },
     { id: 'music', name: 'Music', icon: Music, color: 'bg-red-500', running: false },
     { id: 'terminal', name: 'Terminal', icon: Terminal, color: 'bg-gray-800', running: false },
@@ -22,6 +24,9 @@ export const Dock: React.FC = () => {
     const mouseX = useMotionValue<number | null>(null);
     const { openWindow, windows } = useWindowManager();
     const { dockSize } = useSettings();
+    const [isHovering, setIsHovering] = React.useState(false);
+
+    const isAnyMaximized = Object.values(windows).some(w => w.maximized && !w.minimized);
 
     const isRunning = (appId: string) => {
         if (appId === 'finder') return true;
@@ -29,41 +34,55 @@ export const Dock: React.FC = () => {
     };
 
     return (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-[9999] mb-1">
-            <div
-                className="glass-dock flex items-end gap-3 px-3 pb-3 pt-2 rounded-2xl"
-                onMouseMove={(e) => mouseX.set(e.pageX)}
-                onMouseLeave={() => mouseX.set(null)}
-            >
-                {DOCK_APPS.map((app) => (
-                    <DockIcon
-                        key={app.id}
-                        mouseX={mouseX}
-                        app={app}
-                        running={isRunning(app.id)}
-                        dockSize={dockSize}
-                        onClick={() => {
-                            if (app.id === 'launchpad') {
-                                // Toggle Launchpad (using global store action, assumes available via useWindowManager)
-                                // We need to destructure toggleLaunchpad first
-                                useWindowManager.getState().toggleLaunchpad();
-                            } else {
-                                console.log('Dock: Clicking app', app.id);
-                                openWindow(app.id, app.name);
-                            }
-                        }}
-                    />
-                ))}
-                <div className="w-[1px] h-10 bg-white/20 mx-1 mb-2"></div>
-                <DockIcon
-                    mouseX={mouseX}
-                    app={{ id: 'trash', name: 'Trash', icon: Folder, color: 'bg-gray-600' }}
-                    running={false}
-                    dockSize={dockSize}
-                    onClick={() => { }}
+        <>
+            {/* Hover Trigger Area for Auto-Hide */}
+            {isAnyMaximized && (
+                <div
+                    className="fixed bottom-0 left-0 w-full h-4 z-[9998]"
+                    onMouseEnter={() => setIsHovering(true)}
                 />
+            )}
+
+            <div
+                className={clsx(
+                    "fixed left-1/2 -translate-x-1/2 z-[9999] mb-1 transition-all duration-500 ease-in-out",
+                    isAnyMaximized && !isHovering ? "bottom-[-100px]" : "bottom-2"
+                )}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+            >
+                <div
+                    className="glass-dock flex items-end gap-3 px-3 pb-3 pt-2 rounded-2xl"
+                    onMouseMove={(e) => mouseX.set(e.pageX)}
+                    onMouseLeave={() => mouseX.set(null)}
+                >
+                    {DOCK_APPS.map((app) => (
+                        <DockIcon
+                            key={app.id}
+                            mouseX={mouseX}
+                            app={app}
+                            running={isRunning(app.id)}
+                            dockSize={dockSize}
+                            onClick={() => {
+                                if (app.id === 'launchpad') {
+                                    useWindowManager.getState().toggleLaunchpad();
+                                } else {
+                                    openWindow(app.id, app.name);
+                                }
+                            }}
+                        />
+                    ))}
+                    <div className="w-[1px] h-10 bg-white/20 mx-1 mb-2"></div>
+                    <DockIcon
+                        mouseX={mouseX}
+                        app={{ id: 'trash', name: 'Trash', icon: Folder, color: 'bg-gray-600' }}
+                        running={false}
+                        dockSize={dockSize}
+                        onClick={() => { }}
+                    />
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

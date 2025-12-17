@@ -14,6 +14,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.26",
     "idb-keyval": "^6.2.2",
+    "jsmediatags": "^3.9.7",
     "lucide-react": "^0.561.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
