@@ -1,15 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Edit } from 'lucide-react';
 import clsx from 'clsx';
 
 export const Messages: React.FC = () => {
     const [selectedContact, setSelectedContact] = useState<string>('Craig Federighi');
     const [messageInput, setMessageInput] = useState('');
-    const [chats, setChats] = useState<Record<string, string[]>>({
+    const [chats, setChats] = useState<Record<string, string[]>>({});
+    const [loaded, setLoaded] = useState(false);
+
+    // Initial state
+    const DEFAULT_CHATS = {
         'Craig Federighi': ['Hey! Did you check out the new macOS build?', 'It looks amazing!'],
         'Tim Cook': ['Good morning!', 'Meeting at 10 AM.'],
         'Jony Ive': ['Aluminium. It is unapologetically simple.'],
-    });
+    };
+
+
+    // Load from localStorage on mount (simpler for this "fake" app than full FS overhead for now, but efficient)
+    useEffect(() => {
+        const saved = localStorage.getItem('macos-messages-v1');
+        if (saved) {
+            try {
+                setChats(JSON.parse(saved));
+            } catch (e) {
+                setChats(DEFAULT_CHATS);
+            }
+        } else {
+            setChats(DEFAULT_CHATS);
+        }
+        setLoaded(true);
+    }, []);
+
+    // Save on change
+    useEffect(() => {
+        if (loaded) {
+            localStorage.setItem('macos-messages-v1', JSON.stringify(chats));
+        }
+    }, [chats, loaded]);
 
     const contacts = [
         { name: 'Craig Federighi', time: '9:41 AM', preview: 'It looks amazing!', avatar: 'CF' },
@@ -20,10 +47,13 @@ export const Messages: React.FC = () => {
     const sendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if (!messageInput.trim()) return;
-        setChats(prev => ({
-            ...prev,
-            [selectedContact]: [...(prev[selectedContact] || []), messageInput]
-        }));
+        setChats(prev => {
+            const next = {
+                ...prev,
+                [selectedContact]: [...(prev[selectedContact] || []), messageInput]
+            };
+            return next;
+        });
         setMessageInput('');
 
         // Sim response

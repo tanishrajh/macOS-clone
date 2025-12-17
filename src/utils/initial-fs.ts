@@ -73,5 +73,44 @@ export const generateInitialFileSystem = (): Record<string, FileNode> => {
         position: { x: 20, y: 20 }
     };
 
+    // Default Photos
+    const photo1 = uuidv4();
+    files[photo1] = {
+        id: photo1,
+        parentId: picturesId,
+        name: 'Mountain.jpg',
+        type: 'file',
+        content: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60',
+        createdAt: Date.now(),
+        modifiedAt: Date.now()
+    };
+
+    const photo2 = uuidv4();
+    files[photo2] = {
+        id: photo2,
+        parentId: picturesId,
+        name: 'Ocean.jpg',
+        type: 'file',
+        content: 'https://images.unsplash.com/photo-1518098268026-4e1877433641?w=800&auto=format&fit=crop&q=60',
+        createdAt: Date.now(),
+        modifiedAt: Date.now()
+    };
+
+    // Default Music
+    const song1 = uuidv4();
+    files[song1] = {
+        id: song1,
+        parentId: musicId,
+        name: 'Song 1.mp3',
+        type: 'file',
+        content: JSON.stringify({
+            title: 'Blinding Lights',
+            artist: 'The Weeknd',
+            url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+        }),
+        createdAt: Date.now(),
+        modifiedAt: Date.now()
+    };
+
     return files;
 };

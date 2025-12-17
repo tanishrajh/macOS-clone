@@ -18,6 +18,9 @@ interface WindowStore {
 
     isLaunchpadOpen: boolean;
     toggleLaunchpad: (isOpen?: boolean) => void;
+
+    isSpotlightOpen: boolean;
+    toggleSpotlight: (isOpen?: boolean) => void;
 }
 
 export const useWindowManager = create<WindowStore>((set, get) => ({
@@ -182,6 +185,13 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
     toggleLaunchpad: (isOpen) => {
         set(state => ({
             isLaunchpadOpen: isOpen !== undefined ? isOpen : !state.isLaunchpadOpen
+        }));
+    },
+
+    isSpotlightOpen: false,
+    toggleSpotlight: (isOpen) => {
+        set(state => ({
+            isSpotlightOpen: isOpen !== undefined ? isOpen : !state.isSpotlightOpen
         }));
     }
 }));

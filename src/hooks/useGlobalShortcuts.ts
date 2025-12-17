@@ -3,9 +3,10 @@ import { useEffect } from 'react';
 
 interface ShortcutsProps {
     onSpotlightToggle: () => void;
+    onAppSwitcherToggle: () => void;
 }
 
-export const useGlobalShortcuts = ({ onSpotlightToggle }: ShortcutsProps) => {
+export const useGlobalShortcuts = ({ onSpotlightToggle, onAppSwitcherToggle }: ShortcutsProps) => {
     // const { closeWindow, minimizeWindow } = useWindowManager();
 
     useEffect(() => {
@@ -14,6 +15,12 @@ export const useGlobalShortcuts = ({ onSpotlightToggle }: ShortcutsProps) => {
             if ((e.metaKey || e.ctrlKey) && e.code === 'Space') {
                 e.preventDefault();
                 onSpotlightToggle();
+            }
+
+            // Alt+Tab -> Switcher
+            if (e.altKey && e.code === 'Tab') {
+                // e.preventDefault(); // Browser might block this
+                onAppSwitcherToggle();
             }
 
             // Cmd+W -> Close Active Window

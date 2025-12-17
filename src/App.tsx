@@ -12,17 +12,26 @@ import { Launchpad } from './components/system/Launchpad';
 import { useWindowManager } from './store/window-manager';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 
+import { AppSwitcher } from './components/system/AppSwitcher';
+
 function App() {
   const [booted, setBooted] = useState(false);
-  const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const { initialize: initFS } = useFileSystem();
 
-  // Launchpad State
-  const { isLaunchpadOpen, toggleLaunchpad } = useWindowManager();
+  // Window Manager State
+  const {
+    isLaunchpadOpen,
+    toggleLaunchpad,
+    focusWindow,
+    isSpotlightOpen,
+    toggleSpotlight
+  } = useWindowManager();
 
   // Global Shortcuts
   useGlobalShortcuts({
-    onSpotlightToggle: () => setSpotlightOpen(prev => !prev)
+    onSpotlightToggle: () => toggleSpotlight(),
+    onAppSwitcherToggle: () => setSwitcherOpen(true)
   });
 
   // Theme handling
@@ -51,8 +60,13 @@ function App() {
       <Desktop />
       <MenuBar />
       <Dock />
-      <Spotlight isOpen={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
+      <Spotlight isOpen={isSpotlightOpen} onClose={() => toggleSpotlight(false)} />
       <Launchpad isOpen={isLaunchpadOpen} onClose={() => toggleLaunchpad(false)} />
+      <AppSwitcher
+        isOpen={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+        onSelect={(windowId) => focusWindow(windowId)}
+      />
     </div>
   );
 }
