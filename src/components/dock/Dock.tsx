@@ -16,9 +16,12 @@ const DOCK_APPS = [
     { id: 'settings', name: 'System Settings', icon: Settings, color: 'bg-gray-400', running: true },
 ];
 
+import { useSettings } from '../../store/settings';
+
 export const Dock: React.FC = () => {
     const mouseX = useMotionValue<number | null>(null);
     const { openWindow, windows } = useWindowManager();
+    const { dockSize } = useSettings();
 
     const isRunning = (appId: string) => {
         if (appId === 'finder') return true;
@@ -38,6 +41,7 @@ export const Dock: React.FC = () => {
                         mouseX={mouseX}
                         app={app}
                         running={isRunning(app.id)}
+                        dockSize={dockSize}
                         onClick={() => {
                             if (app.id === 'launchpad') {
                                 // Toggle Launchpad (using global store action, assumes available via useWindowManager)
@@ -55,6 +59,7 @@ export const Dock: React.FC = () => {
                     mouseX={mouseX}
                     app={{ id: 'trash', name: 'Trash', icon: Folder, color: 'bg-gray-600' }}
                     running={false}
+                    dockSize={dockSize}
                     onClick={() => { }}
                 />
             </div>
@@ -62,9 +67,13 @@ export const Dock: React.FC = () => {
     );
 };
 
-const DockIcon = ({ mouseX, app, running, onClick }: { mouseX: any, app: any, running: boolean, onClick: () => void }) => {
+const DockIcon = ({ mouseX, app, running, dockSize, onClick }: { mouseX: any, app: any, running: boolean, dockSize: number, onClick: () => void }) => {
     const ref = useRef<HTMLDivElement>(null);
     const { setDockItemPos } = useWindowManager();
+
+    // Report Position using resize observer or similar if dynamic size changes?
+    // Actually existing window resize event might not catch dock size changes immediately for pos reporting...
+    // But it's okay for now.
 
     // Report Position
     React.useEffect(() => {
@@ -77,21 +86,27 @@ const DockIcon = ({ mouseX, app, running, onClick }: { mouseX: any, app: any, ru
 
         updatePos();
         window.addEventListener('resize', updatePos);
-        return () => window.removeEventListener('resize', updatePos);
-    }, [app.id, setDockItemPos]);
+        // Also update when dockSize changes
+        // Using a small timeout to let transition settle
+        const t = setTimeout(updatePos, 300);
+        return () => {
+            window.removeEventListener('resize', updatePos);
+            clearTimeout(t);
+        };
+    }, [app.id, setDockItemPos, dockSize]);
 
     const distance = useTransform(mouseX, (val: number | null) => {
         const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
         return val ? val - bounds.x - bounds.width / 2 : Infinity;
     });
 
-    const widthSync = useSpring(useTransform(distance, [-150, 0, 150], [40, 80, 40]), {
+    const widthSync = useSpring(useTransform(distance, [-150, 0, 150], [dockSize, dockSize * 1.5, dockSize]), {
         mass: 0.1,
         stiffness: 150,
         damping: 12,
     });
 
-    const width = useTransform(widthSync, (val) => val < 40 ? 40 : val);
+    const width = useTransform(widthSync, (val) => val < dockSize ? dockSize : val);
 
     return (
         <div className="flex flex-col items-center gap-1 group">

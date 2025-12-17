@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useFileSystem } from '../store/filesystem';
 
 export const Terminal: React.FC = () => {
-    const { files, createFile } = useFileSystem();
+    const { files, createFile, deleteFile } = useFileSystem();
     const [history, setHistory] = useState<string[]>(['Welcome to Terminal', 'Type "help" for commands.']);
     const [input, setInput] = useState('');
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -60,7 +60,7 @@ export const Terminal: React.FC = () => {
 
         switch (command) {
             case 'help':
-                output = 'Available commands: help, clear, echo, ls, cd, pwd, mkdir, whoami, date';
+                output = 'Available commands: help, clear, echo, ls, cd, pwd, mkdir, touch, rm, cat, whoami, date';
                 break;
             case 'clear':
                 setHistory([]);
@@ -110,6 +110,55 @@ export const Terminal: React.FC = () => {
                     output = '';
                 } else {
                     output = 'mkdir: missing operand';
+                }
+                break;
+            case 'touch':
+                if (!cwdId) {
+                    output = 'Error: No CWD';
+                    break;
+                }
+                const fileName = args[0];
+                if (fileName) {
+                    createFile(cwdId, fileName, 'file');
+                    output = '';
+                } else {
+                    output = 'touch: missing operand';
+                }
+                break;
+            case 'rm':
+                if (!cwdId) {
+                    output = 'Error: No CWD';
+                    break;
+                }
+                const rmTarget = args[0];
+                if (rmTarget) {
+                    const child = Object.values(files).find(f => f.parentId === cwdId && f.name === rmTarget);
+                    if (child) {
+                        deleteFile(child.id);
+                        output = '';
+                    } else {
+                        output = `rm: cannot remove '${rmTarget}': No such file or directory`;
+                    }
+                } else {
+                    output = 'rm: missing operand';
+                }
+                break;
+            case 'cat':
+                if (!cwdId) {
+                    output = 'Error: No CWD';
+                    break;
+                }
+                const catTarget = args[0];
+                if (catTarget) {
+                    const child = Object.values(files).find(f => f.parentId === cwdId && f.name === catTarget);
+                    if (child) {
+                        if (child.type === 'folder') output = `cat: ${catTarget}: Is a directory`;
+                        else output = child.content || '';
+                    } else {
+                        output = `cat: ${catTarget}: No such file or directory`;
+                    }
+                } else {
+                    output = 'cat: missing operand';
                 }
                 break;
             case 'whoami':
