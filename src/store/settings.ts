@@ -16,7 +16,7 @@ export const useSettings = create<SettingsStore>()(
     persist(
         (set) => ({
             theme: 'light',
-            wallpaper: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', // Default abstract
+            wallpaper: 'url(https://4kwallpapers.com/images/wallpapers/macos-big-sur-apple-layers-fluidic-colorful-wwdc-stock-2560x1440-1455.jpg)', // Big Sur Graphic
             brightness: 100,
             volume: 75,
             wifi: true,

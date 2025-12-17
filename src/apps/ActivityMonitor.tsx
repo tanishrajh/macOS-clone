@@ -42,16 +42,16 @@ export const ActivityMonitor: React.FC = () => {
     // Canvas Graph logic would go here, skipping for brevity
 
     return (
-        <div className="flex flex-col w-full h-full bg-white text-black font-sans text-xs">
+        <div className="flex flex-col w-full h-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-200 font-sans text-xs transition-colors duration-300">
             {/* Toolbar */}
-            <div className="h-10 bg-[#F5F5F7] border-b border-gray-300 flex items-center px-2 shadow-sm z-10">
+            <div className="h-10 bg-[#F5F5F7] dark:bg-[#2c2c2e] border-b border-gray-300 dark:border-black/50 flex items-center px-2 shadow-sm z-10">
                 <div className="flex gap-1 bg-gray-200 p-0.5 rounded-md">
                     {TABS.map(tab => (
                         <div
                             key={tab.id}
                             className={clsx(
                                 "px-3 py-1 rounded-[4px] cursor-pointer font-medium flex items-center gap-1.5",
-                                activeTab === tab.id ? "bg-white shadow-sm text-black" : "text-gray-600 hover:bg-gray-300/50"
+                                activeTab === tab.id ? "bg-white dark:bg-[#3a3a3c] shadow-sm text-black dark:text-white" : "text-gray-600 dark:text-gray-400 hover:bg-gray-300/50 dark:hover:bg-white/10"
                             )}
                             onClick={() => setActiveTab(tab.id)}
                         >
@@ -63,7 +63,7 @@ export const ActivityMonitor: React.FC = () => {
             </div>
 
             {/* Table Header */}
-            <div className="flex bg-[#FAFAFA] border-b border-gray-200 py-1 px-1 font-semibold text-gray-500">
+            <div className="flex bg-[#FAFAFA] dark:bg-[#2c2c2e] border-b border-gray-200 dark:border-white/5 py-1 px-1 font-semibold text-gray-500 dark:text-gray-400">
                 <div className="flex-[3] px-2 border-r border-gray-200">Process Name</div>
                 <div className="flex-[1] px-2 text-right border-r border-gray-200">% CPU</div>
                 <div className="flex-[1] px-2 text-right border-r border-gray-200">Threads</div>
@@ -72,9 +72,9 @@ export const ActivityMonitor: React.FC = () => {
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto bg-white">
+            <div className="flex-1 overflow-y-auto bg-white dark:bg-[#1c1c1c]">
                 {processes.map((p, i) => (
-                    <div key={i} className={clsx("flex py-1 px-1 border-b border-gray-100 hover:bg-blue-500 hover:text-white group", i % 2 === 0 ? "bg-white" : "bg-[#F5F8FA]")}>
+                    <div key={i} className={clsx("flex py-1 px-1 border-b border-gray-100 dark:border-white/5 hover:bg-blue-500 hover:text-white group", i % 2 === 0 ? "bg-white dark:bg-[#1c1c1c]" : "bg-[#F5F8FA] dark:bg-[#252525]")}>
                         <div className="flex-[3] px-2 flex items-center gap-2">
                             <div className="w-3 h-3 bg-gray-400 rounded-sm group-hover:bg-white/50" />
                             {p.name}
@@ -88,7 +88,7 @@ export const ActivityMonitor: React.FC = () => {
             </div>
 
             {/* Bottom Graph Section */}
-            <div className="h-32 bg-[#F5F5F7] border-t border-gray-300 p-4 flex gap-8">
+            <div className="h-32 bg-[#F5F5F7] dark:bg-[#2c2c2e] border-t border-gray-300 dark:border-black/50 p-4 flex gap-8">
                 <div className="flex flex-col justify-between w-32">
                     <span className="font-bold text-lg">System Load</span>
                     <div className="text-2xl font-light">

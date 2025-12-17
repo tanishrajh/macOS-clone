@@ -66,10 +66,10 @@ export const Messages: React.FC = () => {
     };
 
     return (
-        <div className="flex h-full w-full bg-white text-black font-sans">
+        <div className="flex h-full w-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-100 font-sans transition-colors duration-300">
             {/* Sidebar */}
-            <div className="w-64 border-r border-gray-200 flex flex-col bg-white/80 backdrop-blur-md">
-                <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100">
+            <div className="w-64 border-r border-gray-200 dark:border-white/10 flex flex-col bg-white/80 dark:bg-[#2c2c2e]/80 backdrop-blur-md">
+                <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100 dark:border-white/5">
                     <Search className="text-gray-400 w-4 h-4" />
                     <Edit className="text-blue-500 w-5 h-5 cursor-pointer" />
                 </div>
@@ -78,7 +78,7 @@ export const Messages: React.FC = () => {
                         <div
                             key={c.name}
                             className={clsx(
-                                "flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 transition-colors",
+                                "flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors",
                                 selectedContact === c.name && "bg-[#007AFF] text-white hover:bg-[#007AFF]"
                             )}
                             onClick={() => setSelectedContact(c.name)}
@@ -99,9 +99,9 @@ export const Messages: React.FC = () => {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-white">
-                <div className="h-12 border-b border-gray-100 flex items-center px-4 font-semibold text-gray-700 bg-white/50 backdrop-blur">
-                    To: <span className="ml-2 text-black">{selectedContact}</span>
+            <div className="flex-1 flex flex-col bg-white dark:bg-[#1c1c1c]">
+                <div className="h-12 border-b border-gray-100 dark:border-white/10 flex items-center px-4 font-semibold text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-black/20 backdrop-blur">
+                    To: <span className="ml-2 text-black dark:text-white">{selectedContact}</span>
                 </div>
                 <div className="flex-1 p-4 overflow-y-auto space-y-2 flex flex-col">
                     {chats[selectedContact]?.map((msg, i) => (
@@ -116,9 +116,9 @@ export const Messages: React.FC = () => {
                         </div>
                     ))}
                 </div>
-                <form onSubmit={sendMessage} className="p-4 border-t border-gray-100">
+                <form onSubmit={sendMessage} className="p-4 border-t border-gray-100 dark:border-white/10">
                     <input
-                        className="w-full px-4 py-2 rounded-full border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm"
+                        className="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm bg-transparent dark:text-white"
                         placeholder="iMessage"
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}

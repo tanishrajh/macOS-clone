@@ -12,10 +12,10 @@ const ApplicationIcon = () => <div className="w-4 h-4 bg-transparent border bord
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label: string, active: boolean, onClick: () => void }) => (
     <div className={clsx(
-        "flex items-center gap-2 px-2 py-1 rounded-md cursor-default text-sm",
-        active ? "bg-gray-200 ml-1" : "hover:bg-black/5"
+        "flex items-center gap-2 px-2 py-1 rounded-md cursor-default text-sm transition-colors",
+        active ? "bg-gray-300/50 dark:bg-white/10 ml-1 text-black dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400"
     )} onClick={onClick}>
-        <Icon size={16} className={active ? "text-blue-500" : "text-gray-500"} />
+        <Icon size={16} className={active ? "text-blue-500" : "text-gray-500 dark:text-gray-400"} />
         <span className="font-medium">{label}</span>
     </div>
 );
@@ -128,9 +128,9 @@ export const Finder: React.FC = () => {
     }
 
     return (
-        <div className="flex h-full w-full bg-white text-black font-sans">
+        <div className="flex h-full w-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-100 font-sans transition-colors duration-300">
             {/* Sidebar */}
-            <div className="w-48 bg-[#F5F5F7]/95 backdrop-blur-xl border-r border-gray-200 flex flex-col pt-3 pb-4 px-2 select-none">
+            <div className="w-48 bg-[#F5F5F7]/95 dark:bg-[#2c2c2e]/95 backdrop-blur-xl border-r border-gray-200 dark:border-white/10 flex flex-col pt-3 pb-4 px-2 select-none text-sm">
                 <div className="flex gap-2 px-2 mb-4">
                     <div className="w-3 h-3 rounded-full bg-transparent" />
                 </div>
@@ -161,17 +161,17 @@ export const Finder: React.FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 bg-white">
+            <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#1e1e1e]">
                 {/* Toolbar */}
-                <div className="h-12 border-b border-gray-200 flex items-center px-4 justify-between bg-[#F5F5F7]/50 backdrop-blur-md">
+                <div className="h-12 border-b border-gray-200 dark:border-white/10 flex items-center px-4 justify-between bg-[#F5F5F7]/50 dark:bg-[#2c2c2e]/50 backdrop-blur-md text-gray-700 dark:text-gray-200">
                     <div className="flex gap-4">
-                        <div className="flex gap-1 text-gray-500">
+                        <div className="flex gap-1 text-gray-500 dark:text-gray-400">
                             <ChevronLeft
-                                className={clsx("cursor-pointer", historyIndex <= 0 ? "text-gray-300 pointer-events-none" : "hover:text-black")}
+                                className={clsx("cursor-pointer", historyIndex <= 0 ? "text-gray-300 dark:text-gray-600 pointer-events-none" : "hover:text-black dark:hover:text-white")}
                                 onClick={handleBack}
                             />
                             <ChevronRight
-                                className={clsx("cursor-pointer", historyIndex >= history.length - 1 ? "text-gray-300 pointer-events-none" : "hover:text-black")}
+                                className={clsx("cursor-pointer", historyIndex >= history.length - 1 ? "text-gray-300 dark:text-gray-600 pointer-events-none" : "hover:text-black dark:hover:text-white")}
                                 onClick={handleForward}
                             />
                         </div>
@@ -180,10 +180,10 @@ export const Finder: React.FC = () => {
                         </span>
                     </div>
 
-                    <div className="flex gap-2 text-gray-500">
-                        <LayoutGrid size={18} className={clsx("cursor-pointer", viewMode === 'grid' && "text-black")} onClick={() => setViewMode('grid')} />
-                        <ListIcon size={18} className={clsx("cursor-pointer", viewMode === 'list' && "text-black")} onClick={() => setViewMode('list')} />
-                        <Search size={18} className="cursor-pointer hover:text-black ml-4" />
+                    <div className="flex gap-2 text-gray-500 dark:text-gray-400">
+                        <LayoutGrid size={18} className={clsx("cursor-pointer", viewMode === 'grid' && "text-black dark:text-white")} onClick={() => setViewMode('grid')} />
+                        <ListIcon size={18} className={clsx("cursor-pointer", viewMode === 'list' && "text-black dark:text-white")} onClick={() => setViewMode('list')} />
+                        <Search size={18} className="cursor-pointer hover:text-black dark:hover:text-white ml-4" />
                     </div>
                 </div>
 
@@ -196,13 +196,12 @@ export const Finder: React.FC = () => {
                                     if (file.type === 'folder') {
                                         navigateTo(file.id);
                                     } else {
-                                        // Simple file opener logic
                                         if (file.name.endsWith('.png') || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg')) {
                                             openWindow('preview', file.name, { props: { fileId: file.id } });
                                         } else if (file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.json')) {
-                                            openWindow('textedit', file.name, { props: { fileId: file.id } }); // TextEdit needs update to support props too if we want it to open, but focusing on Preview first
+                                            openWindow('textedit', file.name, { props: { fileId: file.id } });
                                         } else if (file.name.endsWith('.mp3')) {
-                                            openWindow('music', 'Music'); // Music handles its own library for now
+                                            openWindow('music', 'Music');
                                         }
                                     }
                                 }}>
@@ -211,25 +210,25 @@ export const Finder: React.FC = () => {
                             ))}
                         </div>
                     ) : (
-                        <table className="w-full text-sm">
-                            <thead className="text-left text-gray-400 font-medium border-b border-gray-100">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-gray-400 dark:text-gray-500 font-medium border-b border-gray-100 dark:border-white/5">
                                 <tr>
                                     <th className="pb-2 pl-2">Name</th>
                                     <th className="pb-2">Date Modified</th>
                                     <th className="pb-2">Kind</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="text-gray-700 dark:text-gray-300">
                                 {currentFiles.map((file) => (
-                                    <tr key={file.id} className="hover:bg-blue-50 cursor-default" onDoubleClick={() => file.type === 'folder' && navigateTo(file.id)}>
-                                        <td className="py-1.5 pl-2 flex items-center gap-2">
+                                    <tr key={file.id} className="hover:bg-blue-50 dark:hover:bg-white/5 cursor-default transition-colors" onDoubleClick={() => file.type === 'folder' && navigateTo(file.id)}>
+                                        <td className="py-1.5 pl-2 flex items-center gap-2 font-medium">
                                             <div className="w-4 h-4 text-gray-500">
                                                 <Folder size={16} fill={file.type === 'folder' ? '#60A5FA' : 'none'} className={file.type === 'folder' ? 'text-blue-400' : 'text-gray-400'} />
                                             </div>
                                             {file.name}
                                         </td>
-                                        <td className="py-1.5 text-gray-500">{format(new Date(), 'MMM d, h:mm a')}</td>
-                                        <td className="py-1.5 text-gray-500">{file.type === 'folder' ? 'Folder' : 'File'}</td>
+                                        <td className="py-1.5 text-gray-500 dark:text-gray-500">{format(new Date(), 'MMM d, h:mm a')}</td>
+                                        <td className="py-1.5 text-gray-500 dark:text-gray-500">{file.type === 'folder' ? 'Folder' : 'File'}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -238,7 +237,7 @@ export const Finder: React.FC = () => {
                 </div>
 
                 {/* Footer / Status Bar */}
-                <div className="h-6 border-t border-gray-200 flex items-center px-4 text-xs text-gray-500">
+                <div className="h-6 border-t border-gray-200 dark:border-white/10 flex items-center px-4 text-xs text-gray-500 dark:text-gray-400">
                     {currentFiles.length} items
                 </div>
             </div>

@@ -21,7 +21,7 @@ export const Preview: React.FC<PreviewProps> = ({ fileId }) => {
 
     if (!file) {
         return (
-            <div className="w-full h-full bg-[#1e1e1e] text-gray-500 flex items-center justify-center font-sans">
+            <div className="w-full h-full bg-[#FAFAFA] dark:bg-[#1e1e1e] text-gray-500 dark:text-gray-400 flex items-center justify-center font-sans transition-colors duration-300">
                 No image selected
             </div>
         );
@@ -47,7 +47,7 @@ export const Preview: React.FC<PreviewProps> = ({ fileId }) => {
     // Fallback for non-images
     if (!src) {
         return (
-            <div className="w-full h-full bg-[#1e1e1e] text-white flex flex-col items-center justify-center font-sans">
+            <div className="w-full h-full bg-[#FAFAFA] dark:bg-[#1e1e1e] text-black dark:text-white flex flex-col items-center justify-center font-sans transition-colors duration-300">
                 <div className="text-6xl mb-4">📄</div>
                 <div className="font-bold">{file.name}</div>
                 <div className="text-gray-400 text-sm mt-2">Preview not available</div>
@@ -56,14 +56,14 @@ export const Preview: React.FC<PreviewProps> = ({ fileId }) => {
     }
 
     return (
-        <div className="flex flex-col w-full h-full bg-[#1e1e1e]/95 backdrop-blur-xl text-white font-sans">
+        <div className="flex flex-col w-full h-full bg-[#FAFAFA]/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl text-black dark:text-white font-sans transition-colors duration-300">
             {/* Toolbar */}
-            <div className="h-10 flex items-center justify-center gap-4 bg-[#2c2c2e] border-b border-[#3a3a3c] shadow-sm relative z-10">
+            <div className="h-10 flex items-center justify-center gap-4 bg-[#F5F5F7] dark:bg-[#2c2c2e] border-b border-gray-300 dark:border-[#3a3a3c] shadow-sm relative z-10">
                 <div className="absolute left-4 font-semibold text-sm truncate max-w-[200px]">{file.name}</div>
-                <button className="p-1 hover:bg-white/10 rounded" onClick={() => setScale(s => Math.max(0.1, s - 0.1))}><ZoomOut size={16} /></button>
-                <button className="p-1 hover:bg-white/10 rounded" onClick={() => setScale(1)}>{Math.round(scale * 100)}%</button>
-                <button className="p-1 hover:bg-white/10 rounded" onClick={() => setScale(s => s + 0.1)}><ZoomIn size={16} /></button>
-                <button className="p-1 hover:bg-white/10 rounded" onClick={() => setRotation(r => r + 90)}><RotateCw size={16} /></button>
+                <button className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded" onClick={() => setScale(s => Math.max(0.1, s - 0.1))}><ZoomOut size={16} /></button>
+                <button className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded" onClick={() => setScale(1)}>{Math.round(scale * 100)}%</button>
+                <button className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded" onClick={() => setScale(s => s + 0.1)}><ZoomIn size={16} /></button>
+                <button className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded" onClick={() => setRotation(r => r + 90)}><RotateCw size={16} /></button>
             </div>
 
             {/* Canvas */}

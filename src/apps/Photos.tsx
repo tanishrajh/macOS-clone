@@ -48,14 +48,14 @@ export const Photos: React.FC = () => {
             allPhotos.slice(4, 7);
 
     return (
-        <div className="flex h-full w-full bg-white text-black font-sans relative">
+        <div className="flex h-full w-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-100 font-sans relative transition-colors duration-300">
             {/* Sidebar */}
-            <div className="w-48 bg-[#F5F5F7] border-r border-gray-200 hidden md:flex flex-col p-4 pt-6">
+            <div className="w-48 bg-[#F5F5F7] dark:bg-[#2c2c2e] border-r border-gray-200 dark:border-white/10 hidden md:flex flex-col p-4 pt-6">
                 <div className="text-gray-500 text-xs font-bold uppercase mb-2">Library</div>
                 {['Library', 'Favorites', 'Recents'].map(tab => (
                     <div
                         key={tab}
-                        className={`px-2 py-1 rounded-md text-sm font-medium mb-1 cursor-pointer hover:bg-black/5 ${activeTab === tab ? 'bg-[#E0E0E0] text-black' : 'text-gray-700'}`}
+                        className={`px-2 py-1 rounded-md text-sm font-medium mb-1 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 ${activeTab === tab ? 'bg-[#E0E0E0] dark:bg-white/20 text-black dark:text-white' : 'text-gray-700 dark:text-gray-400'}`}
                         onClick={() => setActiveTab(tab)}
                     >
                         {tab}
@@ -69,7 +69,7 @@ export const Photos: React.FC = () => {
                     {displayPhotos.map((src, i) => (
                         <div
                             key={i}
-                            className="aspect-square relative group overflow-hidden bg-gray-100 cursor-pointer"
+                            className="aspect-square relative group overflow-hidden bg-gray-100 dark:bg-black/40 cursor-pointer"
                             onClick={() => setSelectedPhoto(src)}
                         >
                             <img src={src} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />

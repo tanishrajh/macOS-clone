@@ -59,7 +59,7 @@ export const FileIcon: React.FC<FileIconProps> = ({
                     className={clsx(
                         "text-xs text-center font-medium px-1.5 py-0.5 rounded leading-tight break-words w-full line-clamp-2 shadow-sm",
                         selected ? "bg-blue-600 text-white" :
-                            darkLabel ? "text-gray-700 group-hover:bg-gray-200" : "text-white group-hover:text-white drop-shadow-md text-shadow"
+                            darkLabel ? "text-gray-700 dark:text-gray-200 group-hover:bg-gray-200 dark:group-hover:bg-white/10" : "text-white group-hover:text-white drop-shadow-md text-shadow"
                     )}
                     style={darkLabel ? {} : { textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
                 >

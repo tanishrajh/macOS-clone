@@ -36,7 +36,7 @@ export const MenuBar: React.FC = () => {
     const handleOpenSettings = () => { setAppleMenuOpen(false); openWindow('settings', 'System Settings', { width: 800, height: 600 }); };
 
     return (
-        <div className="h-[30px] w-full bg-[#00000088] backdrop-blur-2xl flex items-center justify-between px-2 text-[13px] font-medium text-white shadow-sm absolute top-0 z-[5000] select-none">
+        <div className="h-[30px] w-full bg-black/20 backdrop-blur-xl flex items-center justify-between px-2 text-[13px] font-medium text-white shadow-sm absolute top-0 z-[5000] select-none border-b border-white/5">
             <div className="flex items-center gap-0.5 relative">
                 <div
                     className={clsx("flex items-center justify-center hover:bg-white/10 px-3 py-0.5 rounded cursor-default transition-colors relative", appleMenuOpen && "bg-white/10")}
@@ -46,7 +46,7 @@ export const MenuBar: React.FC = () => {
                     {appleMenuOpen && (
                         <>
                             <div className="fixed inset-0 z-40 bg-transparent" onClick={(e) => { e.stopPropagation(); setAppleMenuOpen(false); }} />
-                            <div className="absolute top-full left-0 mt-1 w-56 bg-[#E5E5E5]/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-xl py-1 text-black z-50">
+                            <div className="absolute top-full left-0 mt-1 w-56 mac-glass rounded-lg py-1 text-black dark:text-white z-50">
                                 <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default">About This Mac</div>
                                 <div className="h-px bg-gray-300/50 my-1 mx-3" />
                                 <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleOpenSettings}>System Settings...</div>

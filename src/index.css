@@ -5,82 +5,89 @@
 :root {
   --system-bg: #000000;
 
-  /* macOS Color System */
-  --color-system-gray: #8e8e93;
-  --color-system-red: #ff3b30;
-  --color-system-orange: #ff9500;
-  --color-system-yellow: #ffcc00;
-  --color-system-green: #28cd41;
-  --color-system-blue: #007aff;
-  --color-system-purple: #af52de;
-  --color-system-pink: #ff2d55;
+  /* Premium macOS Glass System */
+  --glass-border-light: 1px solid rgba(255, 255, 255, 0.4);
+  --glass-border-dark: 1px solid rgba(255, 255, 255, 0.1);
 
-  /* Material System - Light */
-  --material-dock-bg: rgba(255, 255, 255, 0.2);
-  --material-menu-bg: rgba(255, 255, 255, 0.4);
-  --material-window-bg: rgba(255, 255, 255, 0.85);
+  --glass-bg-light: rgba(255, 255, 255, 0.65);
+  --glass-bg-dark: rgba(30, 30, 30, 0.60);
 
-  /* Window System */
-  --window-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.35);
-  --window-border: 1px solid rgba(0, 0, 0, 0.1);
-
-  /* Dock Specifics */
-  --dock-border: 1px solid rgba(255, 255, 255, 0.2);
-  --dock-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  --window-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 .dark {
-  /* Material System - Dark */
-  --material-dock-bg: rgba(0, 0, 0, 0.2);
-  --material-menu-bg: rgba(30, 30, 30, 0.4);
-  --material-window-bg: rgba(40, 40, 40, 0.85);
-
-  --window-border: 1px solid rgba(255, 255, 255, 0.15);
+  --window-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   user-select: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbar to match macOS */
+/* Global Glass Class - Applied to Windows, Menus, Dock, Sidebar */
+.mac-glass {
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: var(--glass-border-light);
+  box-shadow: var(--window-shadow);
+}
+
+.dark .mac-glass {
+  background: var(--glass-bg-dark);
+  border: var(--glass-border-dark);
+  color: #fff;
+}
+
+/* Specific Window Chrome */
+.mac-window {
+  @apply mac-glass rounded-xl overflow-hidden transition-all duration-200 ease-out;
+}
+
+.mac-titlebar {
+  @apply h-8 flex items-center px-4 w-full select-none;
+  background: transparent;
+  /* Let glass shine through */
+}
+
+/* Sidebar Styling */
+.mac-sidebar {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.dark .mac-sidebar {
+  background: rgba(40, 40, 40, 0.5);
+}
+
+/* Scrollbar Polish */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(128, 128, 128, 0.4);
+  background: rgba(128, 128, 128, 0.3);
   background-clip: content-box;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(128, 128, 128, 0.6);
-  background-clip: content-box;
-  border: 2px solid transparent;
+  background: rgba(128, 128, 128, 0.5);
 }
 
-/* Utilities for Glassmorphism */
-.glass {
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-.glass-dock {
-  background: var(--material-dock-bg);
-  backdrop-filter: blur(15px) saturate(100%);
-  -webkit-backdrop-filter: blur(15px) saturate(100%);
-  border: var(--dock-border);
-  box-shadow: var(--dock-shadow);
+/* Typography Polish */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.02em;
 }

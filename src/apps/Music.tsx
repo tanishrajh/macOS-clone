@@ -228,7 +228,7 @@ export const Music: React.FC = () => {
     };
 
     return (
-        <div className="flex h-full w-full bg-white text-black font-sans select-none">
+        <div className="flex h-full w-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-100 font-sans select-none transition-colors duration-300">
             <audio
                 ref={audioRef}
                 onTimeUpdate={handleTimeUpdate}
@@ -236,7 +236,7 @@ export const Music: React.FC = () => {
             />
 
             {/* Sidebar */}
-            <div className="w-56 bg-[#F5F5F7] border-r border-[#E5E5E5] flex flex-col p-4 pt-8 shrink-0">
+            <div className="w-56 bg-[#F5F5F7] dark:bg-[#2c2c2e] border-r border-[#E5E5E5] dark:border-white/10 flex flex-col p-4 pt-8 shrink-0">
                 <div className="flex items-center gap-2 mb-6 px-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white shadow-md">
                         <MusicIcon size={16} fill="white" />
@@ -277,7 +277,7 @@ export const Music: React.FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 bg-white">
+            <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#1c1c1c]">
                 <div className="flex-1 overflow-y-auto">
                     {activeView === 'Songs' || activeView === 'Recently Added' ? (
                         <div className="p-8">
@@ -304,7 +304,7 @@ export const Music: React.FC = () => {
                             </div>
 
                             <table className="w-full text-sm text-left border-collapse">
-                                <thead className="text-[11px] text-[#8E8E93] uppercase font-semibold border-b border-[#E5E5E5]">
+                                <thead className="text-[11px] text-[#8E8E93] uppercase font-semibold border-b border-[#E5E5E5] dark:border-white/10">
                                     <tr>
                                         <th className="px-4 py-2 w-12 text-center">#</th>
                                         <th className="px-4 py-2">Title</th>
@@ -317,8 +317,8 @@ export const Music: React.FC = () => {
                                         <tr
                                             key={song.id}
                                             className={clsx(
-                                                "group cursor-default hover:bg-[#F2F2F2]",
-                                                currentSongIndex === i && "bg-[#F0F0F0] text-[#ff3b30]"
+                                                "group cursor-default hover:bg-[#F2F2F2] dark:hover:bg-white/5",
+                                                currentSongIndex === i && "bg-[#F0F0F0] dark:bg-white/10 text-[#ff3b30]"
                                             )}
                                             onDoubleClick={() => { setCurrentSongIndex(i); setIsPlaying(true); }}
                                         >
@@ -326,7 +326,7 @@ export const Music: React.FC = () => {
                                                 <div className={clsx("group-hover:hidden", currentSongIndex === i && "hidden")}>{i + 1}</div>
                                                 <div className={clsx("hidden", currentSongIndex === i && "block mx-auto animate-pulse")}><Volume2 size={14} /></div>
                                                 <div
-                                                    className="absolute inset-0 flex items-center justify-center hidden group-hover:flex bg-[#F2F2F2]"
+                                                    className="absolute inset-0 flex items-center justify-center hidden group-hover:flex bg-[#F2F2F2] dark:bg-[#2c2c2e]"
                                                     onClick={(e) => { e.stopPropagation(); setCurrentSongIndex(i); setIsPlaying(true); }}
                                                 >
                                                     <Play size={12} fill="currentColor" />
@@ -363,7 +363,7 @@ export const Music: React.FC = () => {
                 </div>
 
                 {/* Persistent Player Bar */}
-                <div className="h-[60px] bg-[#F9F9F9] border-t border-[#D1D1D1] flex items-center px-4 justify-between shrink-0 relative z-20">
+                <div className="h-[60px] bg-[#F9F9F9] dark:bg-[#2c2c2e] border-t border-[#D1D1D1] dark:border-black/20 flex items-center px-4 justify-between shrink-0 relative z-20">
                     <div className="flex items-center gap-3 w-[30%] min-w-0">
                         <div className="w-10 h-10 bg-[#E5E5E5] rounded-[3px] overflow-hidden shadow-sm shrink-0 border border-black/5">
                             <img src={currentSong.cover} className="w-full h-full object-cover" />
@@ -376,13 +376,13 @@ export const Music: React.FC = () => {
 
                     <div className="flex flex-col items-center justify-center w-[40%]">
                         <div className="flex items-center gap-5 mb-1">
-                            <SkipBack size={20} className="fill-[#333] text-[#333] cursor-pointer hover:opacity-60 transition-opacity" onClick={prevSong} />
+                            <SkipBack size={20} className="fill-[#333] dark:fill-white text-[#333] dark:text-white cursor-pointer hover:opacity-60 transition-opacity" onClick={prevSong} />
                             {isPlaying ? (
-                                <Pause size={28} className="fill-[#333] text-[#333] cursor-pointer hover:scale-105 transition-transform" onClick={togglePlay} />
+                                <Pause size={28} className="fill-[#333] dark:fill-white text-[#333] dark:text-white cursor-pointer hover:scale-105 transition-transform" onClick={togglePlay} />
                             ) : (
-                                <Play size={28} className="fill-[#333] text-[#333] cursor-pointer hover:scale-105 transition-transform" onClick={togglePlay} />
+                                <Play size={28} className="fill-[#333] dark:fill-white text-[#333] dark:text-white cursor-pointer hover:scale-105 transition-transform" onClick={togglePlay} />
                             )}
-                            <SkipForward size={20} className="fill-[#333] text-[#333] cursor-pointer hover:opacity-60 transition-opacity" onClick={nextSong} />
+                            <SkipForward size={20} className="fill-[#333] dark:fill-white text-[#333] dark:text-white cursor-pointer hover:opacity-60 transition-opacity" onClick={nextSong} />
                         </div>
                         <div className="w-full flex items-center gap-2 group">
                             <span className="text-[10px] text-[#8E8E93] tabular-nums w-8 text-right">{formatTime(progress)}</span>
@@ -397,7 +397,7 @@ export const Music: React.FC = () => {
                     </div>
 
                     <div className="flex items-center justify-end gap-3 w-[30%] text-[#8E8E93]">
-                        <List size={18} className="cursor-pointer hover:text-[#333]" />
+                        <List size={18} className="cursor-pointer hover:text-[#333] dark:hover:text-white" />
                         <div className="flex items-center gap-2 w-24 group">
                             <Volume2 size={16} />
                             <div className="flex-1 h-[3px] bg-[#D1D1D1] rounded-full overflow-hidden">

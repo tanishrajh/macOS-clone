@@ -31,9 +31,9 @@ export const AppStore: React.FC = () => {
     };
 
     return (
-        <div className="flex w-full h-full bg-white text-black font-sans">
+        <div className="flex w-full h-full bg-white dark:bg-[#1c1c1c] text-black dark:text-white font-sans transition-colors duration-300">
             {/* Sidebar */}
-            <div className="w-56 bg-[#F5F5F7] flex flex-col pt-8 border-r border-gray-200">
+            <div className="w-56 bg-[#F5F5F7] dark:bg-[#2c2c2e] flex flex-col pt-8 border-r border-gray-200 dark:border-white/10">
                 <div className="px-4 mb-6">
                     <div className="relative">
                         <Search className="absolute left-2 top-1.5 text-gray-400 w-4 h-4" />
@@ -45,7 +45,7 @@ export const AppStore: React.FC = () => {
                     {['Discover', 'Arcade', 'Create', 'Work', 'Play', 'Develop', 'Categories', 'Updates'].map(tab => (
                         <div
                             key={tab}
-                            className={`px-3 py-2 rounded-md text-sm font-medium cursor-pointer flex items-center gap-3 ${activeTab === tab ? 'bg-[#E0E0E0] text-blue-500' : 'hover:bg-black/5 text-gray-700'}`}
+                            className={`px-3 py-2 rounded-md text-sm font-medium cursor-pointer flex items-center gap-3 ${activeTab === tab ? 'bg-[#E0E0E0] dark:bg-white/20 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-400'}`}
                             onClick={() => setActiveTab(tab)}
                         >
                             {tab === 'Discover' && <Star size={18} />}
@@ -76,15 +76,15 @@ export const AppStore: React.FC = () => {
                     <div className="space-y-6">
                         {FEATURED_APPS.map(app => (
                             <div key={app.id} className="flex items-center gap-4 group">
-                                <img src={app.icon} className="w-16 h-16 rounded-[14px] shadow-sm bg-white object-contain p-1 border border-gray-100" />
-                                <div className="flex-1 border-b border-gray-100 py-4 flex items-center justify-between group-last:border-0">
+                                <img src={app.icon} className="w-16 h-16 rounded-[14px] shadow-sm bg-white object-contain p-1 border border-gray-100 dark:border-black/50" />
+                                <div className="flex-1 border-b border-gray-100 dark:border-white/5 py-4 flex items-center justify-between group-last:border-0">
                                     <div>
                                         <div className="font-semibold text-base">{app.title}</div>
                                         <div className="text-xs text-gray-500">{app.category}</div>
                                         <div className="text-sm text-gray-600 line-clamp-1 mt-0.5">{app.description}</div>
                                     </div>
                                     <button
-                                        className="bg-[#EFF1F2] text-[#007AFF] font-bold text-sm px-5 py-1.5 rounded-full hover:bg-[#E5E5E5] transition-colors min-w-[70px]"
+                                        className="bg-[#EFF1F2] dark:bg-[#3a3a3c] text-[#007AFF] font-bold text-sm px-5 py-1.5 rounded-full hover:bg-[#E5E5E5] dark:hover:bg-[#4a4a4c] transition-colors min-w-[70px]"
                                         onClick={() => handleGet(app.id)}
                                     >
                                         {installing[app.id] ? <div className="w-4 h-4 border-2 border-[#007AFF] border-t-transparent rounded-full animate-spin mx-auto" /> : 'GET'}

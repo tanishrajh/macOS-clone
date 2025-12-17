@@ -113,10 +113,10 @@ export const VoiceMemos: React.FC = () => {
     const activeRecording = recordings.find(r => r.id === selectedId);
 
     return (
-        <div className="flex w-full h-full bg-white text-black font-sans">
+        <div className="flex w-full h-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-100 font-sans transition-colors duration-300">
             {/* Sidebar */}
-            <div className="w-64 bg-[#F5F5F7] border-r border-gray-200 flex flex-col">
-                <div className="h-12 border-b border-gray-200 flex items-center px-4 font-bold text-lg">
+            <div className="w-64 bg-[#F5F5F7] dark:bg-[#2c2c2e] border-r border-gray-200 dark:border-white/10 flex flex-col">
+                <div className="h-12 border-b border-gray-200 dark:border-white/10 flex items-center px-4 font-bold text-lg">
                     All Recordings
                 </div>
                 <div className="flex-1 overflow-y-auto">
@@ -124,8 +124,8 @@ export const VoiceMemos: React.FC = () => {
                         <div
                             key={rec.id}
                             className={clsx(
-                                "p-3 border-b border-gray-200 cursor-pointer",
-                                selectedId === rec.id ? "bg-[#FFE080]" : "hover:bg-gray-100"
+                                "p-3 border-b border-gray-200 dark:border-white/5 cursor-pointer",
+                                selectedId === rec.id ? "bg-[#FFE080] dark:bg-[#D4A017] dark:text-black" : "hover:bg-gray-100 dark:hover:bg-white/5"
                             )}
                             onClick={() => { setSelectedId(rec.id); setIsPlaying(false); }}
                         >
@@ -141,7 +141,7 @@ export const VoiceMemos: React.FC = () => {
             </div>
 
             {/* Main Area */}
-            <div className="flex-1 flex flex-col items-center justify-center bg-white relative">
+            <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-[#1c1c1c] relative">
                 {/* Waveform Placeholder */}
                 <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
                     <div className="flex gap-1 items-end h-32">
@@ -177,13 +177,13 @@ export const VoiceMemos: React.FC = () => {
                     </div>
                 ) : (
                     <div className="z-10 text-center">
-                        <div className="text-6xl font-thin tabular-nums mb-8 text-gray-800">
+                        <div className="text-6xl font-thin tabular-nums mb-8 text-gray-800 dark:text-gray-200">
                             {formatTime(duration)}
                         </div>
                         <button
                             className={clsx(
                                 "w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all shadow-xl",
-                                isRecording ? "border-gray-300 bg-white" : "border-red-500 bg-red-500"
+                                isRecording ? "border-gray-300 dark:border-gray-600 bg-white dark:bg-black" : "border-red-500 bg-red-500"
                             )}
                             onClick={isRecording ? stopRecording : startRecording}
                         >

@@ -30,8 +30,8 @@ export const TextEdit: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col w-full h-full bg-white text-black font-sans">
-            <div className="h-10 bg-gray-100 border-b border-gray-200 flex items-center justify-between px-2 gap-2">
+        <div className="flex flex-col w-full h-full bg-white dark:bg-[#1e1e1e] text-black dark:text-gray-200 font-sans transition-colors duration-300">
+            <div className="h-10 bg-gray-100 dark:bg-[#2d2d2d] border-b border-gray-200 dark:border-black/20 flex items-center justify-between px-2 gap-2">
                 <div className="flex items-center gap-2">
                     <FileText size={16} className="text-gray-500" />
                     <input
@@ -40,7 +40,7 @@ export const TextEdit: React.FC = () => {
                         onChange={(e) => setFileName(e.target.value)}
                     />
                 </div>
-                <button onClick={handleSave} className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-300 rounded shadow-sm text-xs hover:bg-gray-50">
+                <button onClick={handleSave} className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-[#3a3a3c] border border-gray-300 dark:border-black/50 rounded shadow-sm text-xs hover:bg-gray-50 dark:hover:bg-white/10">
                     <Save size={12} /> Save
                 </button>
             </div>

@@ -76,8 +76,8 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     return (
         <div
             className={clsx(
-                "absolute flex flex-col overflow-hidden rounded-xl shadow-2xl origin-center",
-                window.isForeground ? "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]" : "shadow-xl border border-black/5 opacity-90 grayscale-[0.2]",
+                "absolute flex flex-col mac-window origin-center",
+                window.isForeground ? "z-50" : "z-0 grayscale-[0.05] opacity-95",
             )}
             style={{
                 left: window.maximized ? 0 : window.x,
@@ -85,56 +85,51 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 width: window.maximized ? '100%' : window.width,
                 height: window.maximized ? 'calc(100% - 30px)' : window.height,
                 zIndex: window.zIndex,
-                // Transition logic: no transition during drag, smooth otherwise
-                transition: isDragging ? 'none' : 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+                transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
 
-                // Visibility & Minimize Animation
+                // Minimize Logic
                 opacity: window.minimized ? 0 : 1,
                 transform: getTransform(),
                 pointerEvents: window.minimized ? 'none' : 'auto',
-
-                backgroundColor: 'var(--material-window-bg, rgba(255, 255, 255, 0.95))',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: 'var(--window-border, 1px solid rgba(0,0,0,0.1))'
             }}
             onPointerDown={handlePointerDown}
         >
             {/* Title Bar */}
             <div
-                className="h-10 w-full flex items-center justify-between px-4 select-none shrink-0 bg-gray-100/10"
+                className="mac-titlebar"
                 onPointerDown={handleDragStart}
             >
-                <div className="flex gap-2">
-                    {/* Traffic Lights */}
+                <div className="flex gap-2 group">
+                    {/* Traffic Lights - Show icons on group hover */}
                     <div
-                        className="w-3 h-3 rounded-full bg-[#FF5F56] flex items-center justify-center cursor-pointer hover:brightness-90 active:brightness-75 text-black/0 hover:text-black/50 transition-colors"
+                        className="w-3 h-3 rounded-full bg-[#FF5F56] border-[0.5px] border-[#E0443E] flex items-center justify-center cursor-pointer active:brightness-75 transition-all"
                         onClick={(e) => { e.stopPropagation(); closeWindow(window.id); }}
                     >
-                        <X size={6} strokeWidth={4} />
+                        <X size={7} color="#4d0000" className="opacity-0 group-hover:opacity-100 transition-opacity" strokeWidth={3} />
                     </div>
 
                     <div
-                        className="w-3 h-3 rounded-full bg-[#FFBD2E] flex items-center justify-center cursor-pointer hover:brightness-90 active:brightness-75 text-black/0 hover:text-black/50 transition-colors"
+                        className="w-3 h-3 rounded-full bg-[#FFBD2E] border-[0.5px] border-[#DFA123] flex items-center justify-center cursor-pointer active:brightness-75 transition-all"
                         onClick={(e) => { e.stopPropagation(); minimizeWindow(window.id); }}
                     >
-                        <Minus size={6} strokeWidth={4} />
+                        <Minus size={7} color="#995D00" className="opacity-0 group-hover:opacity-100 transition-opacity" strokeWidth={3} />
                     </div>
 
                     <div
-                        className="w-3 h-3 rounded-full bg-[#27C93F] flex items-center justify-center cursor-pointer hover:brightness-90 active:brightness-75 text-black/0 hover:text-black/50 transition-colors"
+                        className="w-3 h-3 rounded-full bg-[#27C93F] border-[0.5px] border-[#1AAB29] flex items-center justify-center cursor-pointer active:brightness-75 transition-all"
                         onClick={(e) => { e.stopPropagation(); maximizeWindow(window.id); }}
                     >
-                        <Maximize2 size={6} strokeWidth={4} className="rotate-45" />
+                        <Maximize2 size={6} color="#006500" className="opacity-0 group-hover:opacity-100 transition-opacity rotate-45" strokeWidth={3} />
                     </div>
                 </div>
 
-                <div className="text-sm font-semibold text-gray-700/80 pointer-events-none">{window.title}</div>
-                <div className="w-16"></div>
+                <div className="absolute left-0 right-0 text-center text-[13px] font-semibold text-gray-700 dark:text-gray-200 pointer-events-none opacity-90">
+                    {window.title}
+                </div>
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 w-full h-full overflow-hidden relative bg-white">
+            <div className="flex-1 w-full h-full overflow-hidden relative bg-white/50 dark:bg-[#1c1c1c]/60 backdrop-blur-md transition-colors duration-300">
                 {children}
             </div>
 

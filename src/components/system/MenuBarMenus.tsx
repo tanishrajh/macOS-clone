@@ -92,10 +92,10 @@ export const MenuBarMenus: React.FC = () => {
                     {activeMenu === menuName && (
                         <>
                             <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setActiveMenu(null)} />
-                            <div className="absolute top-full left-0 mt-1 min-w-[200px] bg-[#E5E5E5]/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-xl py-1 text-black z-50">
+                            <div className="absolute top-full left-0 mt-1 min-w-[200px] bg-[#E5E5E5]/90 dark:bg-[#1e1e1e]/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-lg shadow-xl py-1 text-black dark:text-white z-50">
                                 {items.map((item, idx) => {
                                     if ('divider' in item) {
-                                        return <div key={idx} className="h-px bg-gray-300/50 my-1 mx-3" />;
+                                        return <div key={idx} className="h-px bg-gray-300/50 dark:bg-white/10 my-1 mx-3" />;
                                     }
                                     return (
                                         <div

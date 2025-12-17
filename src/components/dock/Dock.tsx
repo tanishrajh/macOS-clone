@@ -71,7 +71,13 @@ export const Dock: React.FC = () => {
                                 if (app.id === 'launchpad') {
                                     useWindowManager.getState().toggleLaunchpad();
                                 } else {
-                                    openWindow(app.id, app.name);
+                                    // Check if running
+                                    const runningWindow = Object.values(windows).find(w => w.appId === app.id);
+                                    if (runningWindow) {
+                                        useWindowManager.getState().focusWindow(runningWindow.id, true);
+                                    } else {
+                                        openWindow(app.id, app.name);
+                                    }
                                 }
                             }}
                         />

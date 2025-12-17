@@ -48,10 +48,10 @@ export const Notes: React.FC = () => {
         : [];
 
     return (
-        <div className="flex w-full h-full bg-white text-black font-sans">
+        <div className="flex w-full h-full bg-white dark:bg-[#1c1c1c] text-black dark:text-gray-100 font-sans transition-colors duration-300">
             {/* Sidebar */}
-            <div className="w-64 bg-[#F5F5F7] border-r border-gray-200 flex flex-col">
-                <div className="h-12 border-b border-gray-200 flex items-center justify-between px-4">
+            <div className="w-64 bg-[#F5F5F7] dark:bg-[#2d2d2d] border-r border-gray-200 dark:border-white/10 flex flex-col">
+                <div className="h-12 border-b border-gray-200 dark:border-white/10 flex items-center justify-between px-4">
                     <span className="font-bold text-lg">Notes</span>
                     <button onClick={createNote} className="p-1 hover:bg-gray-200 rounded"><Plus size={18} /></button>
                 </div>
@@ -63,8 +63,8 @@ export const Notes: React.FC = () => {
                         <div
                             key={note.id}
                             className={clsx(
-                                "p-3 border-b border-gray-200 cursor-pointer",
-                                activeNoteId === note.id ? "bg-[#FFE080]" : "hover:bg-gray-100"
+                                "p-3 border-b border-gray-200 dark:border-white/5 cursor-pointer",
+                                activeNoteId === note.id ? "bg-[#FFE080] dark:bg-[#D4A017] dark:text-black" : "hover:bg-gray-100 dark:hover:bg-white/5"
                             )}
                             onClick={() => setActiveNoteId(note.id)}
                         >
@@ -79,12 +79,12 @@ export const Notes: React.FC = () => {
             <div className="flex-1 flex flex-col">
                 {activeNoteId ? (
                     <>
-                        <div className="text-gray-400 text-xs p-2 text-center border-b border-gray-100 flex justify-between items-center px-4">
+                        <div className="text-gray-400 text-xs p-2 text-center border-b border-gray-100 dark:border-white/10 flex justify-between items-center px-4">
                             <span>{new Date().toLocaleString()}</span>
                             <button onClick={deleteActiveNote} className="hover:text-red-500"><Trash size={14} /></button>
                         </div>
                         <textarea
-                            className="flex-1 p-8 text-lg outline-none resize-none bg-transparent"
+                            className="flex-1 p-8 text-lg outline-none resize-none bg-transparent dark:text-gray-100"
                             value={files[activeNoteId]?.content || ''}
                             onChange={(e) => updateFileContent(activeNoteId, e.target.value)}
                             placeholder="Type your note here..."
