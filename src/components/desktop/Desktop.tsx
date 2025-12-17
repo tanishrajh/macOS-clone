@@ -17,6 +17,9 @@ import { TextEdit } from '../../apps/TextEdit';
 import { Photos } from '../../apps/Photos';
 import { Messages } from '../../apps/Messages';
 import { Music } from '../../apps/Music';
+import { Reminders } from '../../apps/Reminders';
+import { AppStore } from '../../apps/AppStore';
+import { ActivityMonitor } from '../../apps/ActivityMonitor';
 
 // Map apps to components
 const APP_COMPONENTS: Record<string, React.FC> = {
@@ -31,6 +34,9 @@ const APP_COMPONENTS: Record<string, React.FC> = {
     'photos': Photos,
     'messages': Messages,
     'music': Music,
+    'reminders': Reminders,
+    'appstore': AppStore,
+    'activity': ActivityMonitor,
 };
 
 export const Desktop: React.FC = () => {

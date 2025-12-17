@@ -1,20 +1,23 @@
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useWindowManager } from '../../store/window-manager';
-import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid, Notebook, FileText } from 'lucide-react';
+import { Folder, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, Grid, Notebook, FileText, Activity, CheckSquare, ShoppingBag } from 'lucide-react';
 import clsx from 'clsx';
 
 const DOCK_APPS = [
     { id: 'finder', name: 'Finder', icon: Folder, color: 'bg-blue-500', running: true },
-    { id: 'launchpad', name: 'Launchpad', icon: Grid, color: 'bg-gray-500', running: false }, // Launchpad Icon
+    { id: 'launchpad', name: 'Launchpad', icon: Grid, color: 'bg-gray-500', running: false },
     { id: 'safari', name: 'Safari', icon: Globe, color: 'bg-white text-blue-500', running: false },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-green-500', running: false },
     { id: 'photos', name: 'Photos', icon: Image, color: 'bg-gradient-to-tr from-orange-400 via-red-500 to-purple-600', running: false },
+    { id: 'reminders', name: 'Reminders', icon: CheckSquare, color: 'bg-white text-orange-500', running: false },
     { id: 'notes', name: 'Notes', icon: Notebook, color: 'bg-yellow-400', running: false },
     { id: 'textedit', name: 'TextEdit', icon: FileText, color: 'bg-gray-600', running: false },
     { id: 'calendar', name: 'Calendar', icon: Calendar, color: 'bg-white text-red-500', running: true },
     { id: 'music', name: 'Music', icon: Music, color: 'bg-red-500', running: false },
+    { id: 'appstore', name: 'App Store', icon: ShoppingBag, color: 'bg-blue-600', running: false },
     { id: 'terminal', name: 'Terminal', icon: Terminal, color: 'bg-gray-800', running: false },
+    { id: 'activity', name: 'Activity Monitor', icon: Activity, color: 'bg-gray-700', running: false },
     { id: 'settings', name: 'System Settings', icon: Settings, color: 'bg-gray-400', running: true },
 ];
 

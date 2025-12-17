@@ -35,28 +35,41 @@ export const Music: React.FC = () => {
 
     // --- File System Init ---
     useEffect(() => {
-        // Find or Create ~/Music
-        const root = Object.values(files).find(f => f.parentId === null);
-        if (!root) return;
+        // Ensure standard directory structure exists
+        // This is auto-healing logic in case of state corruption or missing valid paths
+        const ensureStructure = () => {
+            let root = Object.values(files).find(f => f.parentId === null);
+            if (!root) return; // Wait for FS init
 
-        const users = Object.values(files).find(f => f.parentId === root.id && f.name === 'Users');
-        if (!users) return;
+            // Users
+            let users = Object.values(files).find(f => f.parentId === root.id && f.name === 'Users');
+            if (!users) {
+                createFolder(root.id, 'Users');
+                // We can't proceed in this render cycle as state won't update immediately.
+                // Next render will find 'Users' and proceed.
+                return;
+            }
 
-        const user = Object.values(files).find(f => f.parentId === users.id && f.name === 'user');
-        if (!user) return; // Should technically exist
+            // user
+            let user = Object.values(files).find(f => f.parentId === users.id && f.name === 'user');
+            if (!user) {
+                createFolder(users.id, 'user');
+                return;
+            }
 
-        let music = Object.values(files).find(f => f.parentId === user.id && f.name === 'Music');
+            // Music
+            let music = Object.values(files).find(f => f.parentId === user.id && f.name === 'Music');
+            if (!music) {
+                createFolder(user.id, 'Music');
+                // Don't need to return, we can wait for next cycle or optimistically assume created.
+                // But safer to wait for next cycle to setID.
+            } else {
+                setMusicFolderId(music.id);
+            }
+        };
 
-        if (!music) {
-            // Create if missing (although createFolder is async/action in store, assuming immediate effect or we just wait for next render)
-            // But we can't await here easily if not async. 
-            // For now, let's just trigger creation. Since we depend on [files], it will re-run.
-            // CAUTION: prevent infinite loop if creation fails or takes time.
-            createFolder(user.id, 'Music');
-        } else {
-            setMusicFolderId(music.id);
-        }
-    }, [files, createFolder]); // Dependencies might cause loops if we write. handle carefully.
+        ensureStructure();
+    }, [files, createFolder]);
 
     // --- Load Local Songs ---
     useEffect(() => {
@@ -136,49 +149,73 @@ export const Music: React.FC = () => {
 
     const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !musicFolderId) return;
+        if (!file || !musicFolderId) {
+            console.error("No file or music folder", { file, musicFolderId });
+            return;
+        }
 
-        // Dynamic import to avoid SSR/Build issues if any
-        // @ts-ignore
-        await import('jsmediatags/dist/jsmediatags.min.js');
-        const jsmediatags = (window as any).jsmediatags;
+        console.log("Importing file:", file.name);
+
+        let jsmediatags: any = null;
+        try {
+            // @ts-ignore
+            const mod = await import('jsmediatags/dist/jsmediatags.min.js');
+            jsmediatags = mod.default || mod || (window as any).jsmediatags;
+            console.log("JSMediaTags loaded:", !!jsmediatags);
+        } catch (err) {
+            console.error("Failed to load jsmediatags", err);
+        }
 
         const reader = new FileReader();
         reader.onload = (evt) => {
             const dataUrl = evt.target?.result as string;
+            console.log("File read complete. processing tags...");
 
-            jsmediatags.read(file, {
-                onSuccess: (tag: any) => {
-                    const tags = tag.tags;
-                    let cover = null;
-                    if (tags.picture) {
-                        const { data, format } = tags.picture;
-                        let base64String = "";
-                        for (let i = 0; i < data.length; i++) {
-                            base64String += String.fromCharCode(data[i]);
-                        }
-                        cover = `data:${format};base64,${window.btoa(base64String)}`;
-                    }
+            if (jsmediatags) {
+                try {
+                    new jsmediatags.Reader(file)
+                        .setTagsToRead(["title", "artist", "picture", "album"])
+                        .read({
+                            onSuccess: (tag: any) => {
+                                console.log("Tags read success:", tag);
+                                const tags = tag.tags;
+                                let cover = null;
+                                if (tags.picture) {
+                                    const { data, format } = tags.picture;
+                                    let base64String = "";
+                                    for (let i = 0; i < data.length; i++) {
+                                        base64String += String.fromCharCode(data[i]);
+                                    }
+                                    cover = `data:${format};base64,${window.btoa(base64String)}`;
+                                }
 
-                    const metaContent = JSON.stringify({
-                        type: 'music-meta',
-                        url: dataUrl,
-                        meta: {
-                            title: tags.title || file.name.replace('.mp3', ''),
-                            artist: tags.artist || 'Unknown Artist',
-                            album: tags.album,
-                            cover
-                        }
-                    });
+                                const metaContent = JSON.stringify({
+                                    type: 'music-meta',
+                                    url: dataUrl,
+                                    meta: {
+                                        title: tags.title || file.name.replace('.mp3', ''),
+                                        artist: tags.artist || 'Unknown Artist',
+                                        album: tags.album,
+                                        cover
+                                    }
+                                });
 
-                    createFile(musicFolderId, file.name, 'file', metaContent);
-                },
-                onError: (error: any) => {
-                    console.error("Tags error", error);
-                    // Fallback to simple file
+                                console.log("Creating file with meta...");
+                                createFile(musicFolderId, file.name, 'file', metaContent);
+                            },
+                            onError: (error: any) => {
+                                console.error("Tags error", error);
+                                createFile(musicFolderId, file.name, 'file', dataUrl);
+                            }
+                        });
+                } catch (e) {
+                    console.error("Crash during tag reading", e);
                     createFile(musicFolderId, file.name, 'file', dataUrl);
                 }
-            });
+            } else {
+                console.warn("JSMediaTags not available, using fallback");
+                createFile(musicFolderId, file.name, 'file', dataUrl);
+            }
         };
         reader.readAsDataURL(file);
     };
