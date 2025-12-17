@@ -64,9 +64,9 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             )}
             style={{
                 left: window.maximized ? 0 : window.x,
-                top: window.maximized ? 0 : window.y,
+                top: window.maximized ? 30 : window.y, // Respect MenuBar height
                 width: window.maximized ? '100%' : window.width,
-                height: window.maximized ? '100%' : window.height,
+                height: window.maximized ? 'calc(100% - 30px)' : window.height,
                 zIndex: window.zIndex,
                 display: window.minimized ? 'none' : 'flex',
                 backgroundColor: 'var(--material-window-bg, rgba(255, 255, 255, 0.95))',
