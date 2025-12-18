@@ -23,6 +23,7 @@ const DOCK_APPS = [
 ];
 
 import { useSettings } from '../../store/settings';
+import { playSound } from '../../utils/sound';
 
 export const Dock: React.FC = () => {
     const mouseX = useMotionValue<number | null>(null);
@@ -68,6 +69,7 @@ export const Dock: React.FC = () => {
                             running={isRunning(app.id)}
                             dockSize={dockSize}
                             onClick={() => {
+                                playSound('click');
                                 if (app.id === 'launchpad') {
                                     useWindowManager.getState().toggleLaunchpad();
                                 } else {
@@ -88,7 +90,11 @@ export const Dock: React.FC = () => {
                         app={{ id: 'trash', name: 'Trash', icon: Trash2, color: 'bg-gradient-to-b from-gray-500 to-gray-700' }}
                         running={false}
                         dockSize={dockSize}
-                        onClick={() => { }}
+                        onClick={() => {
+                            playSound('trash');
+                            // Open Trash (Finder with trash path - simplified as generic Finder for now)
+                            openWindow('finder', 'Trash');
+                        }}
                     />
                 </div>
             </div>
