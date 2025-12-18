@@ -64,6 +64,24 @@ export const Finder: React.FC<{ windowId?: string }> = ({ windowId }) => {
         }
     }, [windowId, viewMode]);
 
+    // Event Listeners for Menu Bar "Go" actions
+    useEffect(() => {
+        const onBack = (e: CustomEvent) => {
+            if (useWindowManager.getState().activeWindowId === windowId) handleBack();
+        };
+        const onForward = (e: CustomEvent) => {
+            if (useWindowManager.getState().activeWindowId === windowId) handleForward();
+        };
+
+        window.addEventListener('menu-go-back', onBack as EventListener);
+        window.addEventListener('menu-go-forward', onForward as EventListener);
+
+        return () => {
+            window.removeEventListener('menu-go-back', onBack as EventListener);
+            window.removeEventListener('menu-go-forward', onForward as EventListener);
+        };
+    }, [windowId, historyIndex, history]); // Re-bind when history changes so handleBack has fresh closure
+
     // Initialize to user Home on mount
     useEffect(() => {
         // Find /Users/user

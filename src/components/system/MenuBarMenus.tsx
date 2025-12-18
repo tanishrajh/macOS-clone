@@ -135,6 +135,51 @@ export const MenuBarMenus: React.FC = () => {
             case 'help':
                 openWindow('safari', 'Safari', { props: { url: 'https://support.apple.com/macos' } });
                 break;
+            
+            // Go Menu
+            case 'go-back': window.dispatchEvent(new CustomEvent('menu-go-back')); break;
+            case 'go-forward': window.dispatchEvent(new CustomEvent('menu-go-forward')); break;
+            
+            case 'go-home':
+            case 'go-desktop':
+            case 'go-downloads':
+                // Resolve path
+                const allFiles = Object.values(files);
+                const root = allFiles.find(f => f.parentId === null);
+                if (!root) return;
+                const users = allFiles.find(f => f.parentId === root.id && f.name === 'Users');
+                if (!users) return;
+                const user = allFiles.find(f => f.parentId === users.id && f.name === 'user');
+                if (!user) return;
+
+                let targetId;
+                if (action === 'go-home') targetId = user.id;
+                else if (action === 'go-desktop') targetId = allFiles.find(f => f.parentId === user.id && f.name === 'Desktop')?.id;
+                else if (action === 'go-downloads') targetId = allFiles.find(f => f.parentId === user.id && f.name === 'Downloads')?.id;
+
+                if (targetId) {
+                    // specific logic: if active window is finder, navigate it. else open new finder.
+                    if (activeWindowId && windows[activeWindowId].appId === 'finder') {
+                        useWindowManager.getState().updateWindow(activeWindowId, {
+                            meta: { ...windows[activeWindowId].meta, currentPath: targetId }
+                        });
+                    } else {
+                        // Open new window at location
+                        // We can't easily pass start path to openWindow generic config yet without modifying Finder to read it from props too.
+                        // But we CAN pass it in meta if we modify openWindow to accept meta
+                        // OR we modify Finder to look at meta on mount.
+                        // Finder looks at meta on update, but mount?
+                        // Let's rely on Finder default for now or add a quick hack to support initial meta if possible.
+                        // Actually Finder initializes to Home.
+                        // If we open new window, we can just open it.
+                        // Use openWindow then update it?
+                         openWindow('finder', 'Finder', { width: 600, height: 400 });
+                         // The new window needs time to mount.
+                         // For now, these only work if Finder is active, or generic Open Finder (Home).
+                         // Let's stick to "If active Finder, navigate. If not, Open Finder to Home (default)".
+                    }
+                }
+                break;
             // Add more handlers as needed
         }
     };
