@@ -24,6 +24,29 @@ export const MenuBar: React.FC = () => {
     const [showShutdown, setShowShutdown] = useState(false);
     const [showLogout, setShowLogout] = useState(false);
 
+    // Battery Logic
+    const [batteryMenuOpen, setBatteryMenuOpen] = useState(false);
+    const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
+    const [isCharging, setIsCharging] = useState(false);
+
+    useEffect(() => {
+        // @ts-ignore
+        if (navigator.getBattery) {
+            // @ts-ignore
+            navigator.getBattery().then(battery => {
+                setBatteryLevel(battery.level * 100);
+                setIsCharging(battery.charging);
+
+                battery.addEventListener('levelchange', () => setBatteryLevel(battery.level * 100));
+                battery.addEventListener('chargingchange', () => setIsCharging(battery.charging));
+            });
+        } else {
+            // Mock for browsers without API
+            setBatteryLevel(100);
+            setIsCharging(true);
+        }
+    }, []);
+
     const activeApp = activeWindowId ? windows[activeWindowId].appId : 'Finder';
     const displayAppName = activeApp.charAt(0).toUpperCase() + activeApp.slice(1);
 
@@ -39,6 +62,7 @@ export const MenuBar: React.FC = () => {
     );
 
     const handleSleep = () => { setAppleMenuOpen(false); setSleeping(true); };
+<<<<<<< HEAD
     const handleClickLock = () => { setAppleMenuOpen(false); setLocked(true); }; // Renamed to avoid collision with generic lock handler if any
     const handleOpenSettings = (e: React.MouseEvent) => {
         setAppleMenuOpen(false);
@@ -49,6 +73,10 @@ export const MenuBar: React.FC = () => {
             origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: rect.width, height: rect.height }
         });
     };
+=======
+    const handleClickLock = () => { setAppleMenuOpen(false); setLocked(true); };
+    const handleOpenSettings = () => { setAppleMenuOpen(false); openWindow('settings', 'System Settings', { width: 800, height: 600 }); };
+>>>>>>> b3d7012 (feat: enhance control center animation and add battery menu)
 
     return (
         <div className="h-[30px] w-full bg-black/20 backdrop-blur-xl flex items-center justify-between px-2 text-[13px] font-medium text-white shadow-sm absolute top-0 z-[5000] select-none border-b border-white/5">
@@ -165,7 +193,50 @@ export const MenuBar: React.FC = () => {
 
             <div className="flex items-center gap-4 px-2">
                 <div className="flex items-center gap-3 opacity-90">
-                    <BatteryMedium size={18} className="opacity-80" />
+                    {/* Battery */}
+                    <div
+                        className="relative flex items-center"
+                        onClick={() => setBatteryMenuOpen(!batteryMenuOpen)}
+                    >
+                        <div className={clsx("flex items-center justify-center opacity-80 cursor-pointer rounded hover:bg-white/10 px-1 py-0.5 transition-colors", batteryMenuOpen && "bg-white/10")}>
+                            <BatteryMedium size={18} className={clsx(batteryLevel !== null && batteryLevel <= 20 && "text-red-500", isCharging && "text-green-400")} />
+                        </div>
+
+                        <AnimatePresence>
+                            {batteryMenuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40 bg-transparent" onClick={(e) => { e.stopPropagation(); setBatteryMenuOpen(false); }} />
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: 5, filter: "blur(10px)" }}
+                                        animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+                                        exit={{ opacity: 0, scale: 0.95, y: 5, filter: "blur(10px)" }}
+                                        transition={{ duration: 0.1, ease: "easeOut" }}
+                                        className="absolute top-full right-0 mt-2 w-64 mac-glass rounded-lg py-1 text-black dark:text-gray-200 z-50 shadow-2xl border border-white/20 select-none"
+                                    >
+                                        <div className="px-4 py-2 border-b border-gray-400/20">
+                                            <div className="text-xs font-bold text-gray-500 uppercase mb-1">Battery</div>
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span>{batteryLevel !== null ? `${Math.round(batteryLevel)}%` : 'Checking...'}</span>
+                                                <span className="text-gray-500 text-xs">{isCharging ? 'Charging' : 'Battery Power'}</span>
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-1">
+                                                Power Source: {isCharging ? 'Power Adapter' : 'Battery'}
+                                            </div>
+                                        </div>
+                                        <div className="py-1">
+                                            <div
+                                                className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default text-sm flex items-center gap-2"
+                                                onClick={() => { setBatteryMenuOpen(false); openWindow('settings', 'System Settings'); }}
+                                            >
+                                                Battery Settings...
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
                     {/* Interactive Wifi Icon */}
                     <div onClick={() => setControlCenterOpen(true)}>
                         <Wifi size={16} className={clsx("opacity-80 cursor-pointer", !wifi && "opacity-50 line-through")} />
@@ -178,7 +249,7 @@ export const MenuBar: React.FC = () => {
 
                 <div className="flex items-center gap-2 relative">
                     <div
-                        className={clsx("flex items-center gap-2 cursor-default hover:bg-white/10 px-2 py-0.5 rounded transition-colors", controlCenterOpen && "bg-white/10")}
+                        className={clsx("relative flex items-center gap-2 cursor-default hover:bg-white/10 px-2 py-0.5 rounded transition-colors", controlCenterOpen && "bg-white/10")}
                         onClick={() => setControlCenterOpen(!controlCenterOpen)}
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-100">
@@ -189,12 +260,12 @@ export const MenuBar: React.FC = () => {
                         <AnimatePresence>
                             {controlCenterOpen && (
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0, x: 10, y: -15, filter: "blur(10px)" }}
+                                    initial={{ opacity: 0, scale: 0.1, x: 0, y: -20, filter: "blur(12px)" }}
                                     animate={{ opacity: 1, scale: 1, x: 0, y: 0, filter: "blur(0px)" }}
-                                    exit={{ opacity: 0, scale: 0, x: 10, y: -15, filter: "blur(10px)" }}
-                                    transition={{ duration: 0.25, type: "spring", bounce: 0, damping: 18 }}
-                                    style={{ transformOrigin: "top right" }}
-                                    className="absolute top-0 right-0 z-[5001]" // Position wrapper
+                                    exit={{ opacity: 0, scale: 0.1, x: 0, y: -10, filter: "blur(12px)" }}
+                                    transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                                    style={{ transformOrigin: "calc(100% - 14px) -12px" }} // Adjusted for relative anchor: ~center of 28px icon button
+                                    className="absolute top-8 right-0 z-[5001]"
                                 >
                                     <ControlCenter isOpen={true} onClose={() => setControlCenterOpen(false)} />
                                 </motion.div>
