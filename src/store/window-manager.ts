@@ -70,6 +70,7 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
             maximized: false,
             isForeground: true,
             props: config.props,
+            origin: config.origin,
             ...config
         };
 

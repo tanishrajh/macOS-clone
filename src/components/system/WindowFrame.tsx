@@ -3,6 +3,7 @@ import { X, Minus, Maximize2 } from 'lucide-react';
 import { useWindowManager } from '../../store/window-manager';
 import type { WindowState } from '../../types/window';
 import clsx from 'clsx';
+import { motion, useMotionValue } from 'framer-motion';
 
 interface WindowFrameProps {
     window: WindowState;
@@ -16,21 +17,6 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
     const dockPos = dockItems[window.appId];
 
-    // Calculate transform for minimize animation
-    const getTransform = () => {
-        if (!window.minimized) return 'none';
-
-        if (dockPos) {
-            // Calculate transform relative to current position (x, y)
-            const deltaX = dockPos.x - (window.x + window.width / 2);
-            const deltaY = dockPos.y - (window.y + window.height / 2);
-
-            return `translate(${deltaX}px, ${deltaY}px) scale(0)`;
-        }
-
-        return `translate(0px, ${window.y + 200}px) scale(0.5)`;
-    };
-
     const handlePointerDown = () => {
         if (!window.isForeground) {
             focusWindow(window.id);
@@ -40,7 +26,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const handleDragStart = (e: React.PointerEvent) => {
         if (window.maximized) return;
         e.preventDefault();
-        e.stopPropagation(); // Prevent bubbling to window logic if any
+        e.stopPropagation();
         setIsDragging(true);
         dragOffset.current = {
             x: e.clientX - window.x,
@@ -73,26 +59,84 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         }
     }, [isDragging, window.id, moveWindow]);
 
+    // Animation Variants
+    // We determine the "origin" rect based on:
+    // 1. window.origin (if Just Opened or explicit source)
+    // 2. dockItems[window.appId] (if minimizing/restoring)
+
+    // Default Animation State (Normal Window)
+    const normalState = {
+        opacity: 1,
+        scale: 1,
+        x: window.maximized ? 0 : window.x,
+        y: window.maximized ? 30 : window.y,
+        width: window.maximized ? '100%' : window.width,
+        height: window.maximized ? 'calc(100% - 30px)' : window.height,
+    };
+
+    // Calculate Origin State
+    const getOriginState = () => {
+        if (window.minimized && dockPos) {
+            // Minimize to Dock logic
+            // We want to scale DOWN to the dock icon
+            // Framer Motion handles "layout" changes, but here we are manual.
+            // Simplified: Translate to dock pos and scale 0.
+            return {
+                opacity: 0,
+                scale: 0,
+                x: dockPos.x - (window.width / 2),
+                y: dockPos.y - (window.height / 2),
+                // Keep dimensions to maintain aspect ratio during shrink
+                width: window.width,
+                height: window.height
+            };
+        }
+
+        // If we have an origin (Opening animation)
+        if (window.origin) {
+            return {
+                opacity: 0,
+                scale: 0,
+                x: window.origin.x - (window.width / 2), // Center origin relative to window size?
+                // Actually, if we scale: 0, the element is a point.
+                // We want that point to be at window.origin.x, window.origin.y
+                // Since default transform-origin is center:
+                // x should be origin.x - (currentWidth/2)
+
+                // However, initial open likely uses current window.width/height in data.
+                x: window.origin.x - (window.width / 2),
+                y: window.origin.y - (window.height / 2),
+                width: window.width,
+                height: window.height
+            };
+        }
+
+        // Fallback (Fade in center if no origin)
+        return {
+            opacity: 0,
+            scale: 0.95,
+            x: window.x,
+            y: window.y + 20,
+            width: window.width,
+            height: window.height
+        };
+    };
+
     return (
-        <div
+        <motion.div
             className={clsx(
                 "absolute flex flex-col mac-window origin-center",
                 window.isForeground ? "z-50" : "z-0 grayscale-[0.05] opacity-95",
             )}
+            initial={getOriginState()}
+            animate={window.minimized ? getOriginState() : normalState}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} // Apple-like easing
             style={{
-                left: window.maximized ? 0 : window.x,
-                top: window.maximized ? 30 : window.y,
-                width: window.maximized ? '100%' : window.width,
-                height: window.maximized ? 'calc(100% - 30px)' : window.height,
                 zIndex: window.zIndex,
-                transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
-
-                // Minimize Logic
-                opacity: window.minimized ? 0 : 1,
-                transform: getTransform(),
                 pointerEvents: window.minimized ? 'none' : 'auto',
             }}
             onPointerDown={handlePointerDown}
+            drag={false} // We handle drag manually for better window control
         >
             {/* Title Bar */}
             <div
@@ -133,6 +177,6 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 {children}
             </div>
 
-        </div>
+        </motion.div>
     );
 };

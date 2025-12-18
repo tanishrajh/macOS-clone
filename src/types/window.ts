@@ -10,6 +10,7 @@ export interface WindowState {
     minimized: boolean;
     maximized: boolean;
     isForeground: boolean;
+    origin?: { x: number; y: number; width?: number; height?: number }; // Origin for genie effect
 
     // App specific state that might need to be preserved in window
     // e.g. current path in finder
