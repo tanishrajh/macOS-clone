@@ -7,15 +7,21 @@ import clsx from 'clsx';
 import { useSettings } from '../../store/settings';
 import { useSystem } from '../../store/system';
 import { MenuBarMenus } from './MenuBarMenus';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog } from './Dialog';
 
 export const MenuBar: React.FC = () => {
     const [time, setTime] = useState(new Date());
     const { activeWindowId, windows, toggleSpotlight, openWindow } = useWindowManager();
-    const { setSleeping } = useSystem();
+    const { setSleeping, setLocked } = useSystem();
     const { wifi } = useSettings();
     const [controlCenterOpen, setControlCenterOpen] = useState(false);
     const [appleMenuOpen, setAppleMenuOpen] = useState(false);
+
+    // Dialog States
+    const [showAbout, setShowAbout] = useState(false);
+    const [showRestart, setShowRestart] = useState(false);
+    const [showShutdown, setShowShutdown] = useState(false);
+    const [showLogout, setShowLogout] = useState(false);
 
     const activeApp = activeWindowId ? windows[activeWindowId].appId : 'Finder';
     const displayAppName = activeApp.charAt(0).toUpperCase() + activeApp.slice(1);
@@ -31,9 +37,8 @@ export const MenuBar: React.FC = () => {
         </span>
     );
 
-    const handleRestart = () => window.location.reload();
     const handleSleep = () => { setAppleMenuOpen(false); setSleeping(true); };
-    const handleLock = () => window.location.reload();
+    const handleClickLock = () => { setAppleMenuOpen(false); setLocked(true); }; // Renamed to avoid collision with generic lock handler if any
     const handleOpenSettings = () => { setAppleMenuOpen(false); openWindow('settings', 'System Settings', { width: 800, height: 600 }); };
 
     return (
@@ -59,26 +64,80 @@ export const MenuBar: React.FC = () => {
                                     style={{ transformOrigin: "top left" }}
                                     className="absolute top-full left-0 mt-1 w-56 mac-glass rounded-lg py-1 text-black dark:text-white z-50 shadow-2xl border border-white/20"
                                 >
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default">About This Mac</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowAbout(true); }}>About This Mac</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
                                     <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleOpenSettings}>System Settings...</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default">App Store...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); openWindow('appstore', 'App Store'); }}>App Store...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default">Recent Items</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default opacity-50">Recent Items</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default">Force Quit...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); openWindow('activity', 'Activity Monitor'); }}>Force Quit...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
                                     <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleSleep}>Sleep</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleRestart}>Restart...</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleLock}>Shut Down...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowRestart(true); }}>Restart...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowShutdown(true); }}>Shut Down...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleLock}>Lock Screen</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleLock}>Log Out User...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); handleClickLock(); }}>Lock Screen</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowLogout(true); }}>Log Out User...</div>
                                 </motion.div>
                             </>
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* System Dialogs */}
+                <Dialog
+                    open={showAbout}
+                    onClose={() => setShowAbout(false)}
+                    title=""
+                    description=""
+                    primaryAction={{ label: 'OK', onClick: () => setShowAbout(false) }}
+                >
+                    <div className="flex flex-col items-center justify-center pt-2 pb-4 gap-4">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center shadow-inner">
+                            <svg viewBox="0 0 384 512" width="50" height="50" fill="#333" className="">
+                                <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+                            </svg>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <h2 className="text-xl font-bold">macOS Sequoia</h2>
+                            <p className="text-sm text-gray-500">Version 15.0</p>
+                            <div className="flex gap-2 mt-2 text-xs text-gray-400">
+                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 rounded">MacBook Pro</span>
+                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 rounded">M3 Max</span>
+                            </div>
+                        </div>
+                    </div>
+                </Dialog>
+
+                <Dialog
+                    open={showRestart}
+                    onClose={() => setShowRestart(false)}
+                    title="Restart"
+                    description="Are you sure you want to restart your computer?"
+                    type="danger"
+                    primaryAction={{ label: 'Restart', danger: true, onClick: () => window.location.reload() }}
+                    secondaryAction={{ label: 'Cancel', onClick: () => setShowRestart(false) }}
+                />
+
+                <Dialog
+                    open={showShutdown}
+                    onClose={() => setShowShutdown(false)}
+                    title="Shut Down"
+                    description="Are you sure you want to shut down your computer?"
+                    type="danger"
+                    primaryAction={{ label: 'Shut Down', danger: true, onClick: () => window.location.reload() }}
+                    secondaryAction={{ label: 'Cancel', onClick: () => setShowShutdown(false) }}
+                />
+
+                <Dialog
+                    open={showLogout}
+                    onClose={() => setShowLogout(false)}
+                    title="Log Out"
+                    description="Are you sure you want to log out?"
+                    primaryAction={{ label: 'Log Out', danger: true, onClick: () => { setLocked(true); setShowLogout(false); } }}
+                    secondaryAction={{ label: 'Cancel', onClick: () => setShowLogout(false) }}
+                />
 
                 <MenuItem bold>{displayAppName}</MenuItem>
 
