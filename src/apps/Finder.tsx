@@ -43,10 +43,26 @@ export const Finder: React.FC<{ windowId?: string }> = ({ windowId }) => {
     useEffect(() => {
         if (windowId && currentFolderId) {
             useWindowManager.getState().updateWindow(windowId, {
-                meta: { currentPath: currentFolderId }
+                meta: {
+                    currentPath: currentFolderId,
+                    viewMode: viewMode // Sync OUT to meta
+                }
             });
         }
-    }, [windowId, currentFolderId]);
+    }, [windowId, currentFolderId, viewMode]);
+
+    // Sync IN from Window Meta (for Menu Bar control)
+    useEffect(() => {
+        if (windowId) {
+            const unsub = useWindowManager.subscribe((state) => {
+                const win = state.windows[windowId];
+                if (win && win.meta && win.meta.viewMode && win.meta.viewMode !== viewMode) {
+                    setViewMode(win.meta.viewMode);
+                }
+            });
+            return () => unsub();
+        }
+    }, [windowId, viewMode]);
 
     // Initialize to user Home on mount
     useEffect(() => {

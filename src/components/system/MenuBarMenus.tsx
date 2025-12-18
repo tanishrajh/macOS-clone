@@ -70,6 +70,20 @@ export const MenuBarMenus: React.FC = () => {
             case 'fullscreen':
                 if (activeWindowId) maximizeWindow(activeWindowId);
                 break;
+            case 'view-icons':
+                if (activeWindowId) {
+                    useWindowManager.getState().updateWindow(activeWindowId, {
+                        meta: { ...windows[activeWindowId].meta, viewMode: 'grid' }
+                    });
+                }
+                break;
+            case 'view-list':
+                if (activeWindowId) {
+                    useWindowManager.getState().updateWindow(activeWindowId, {
+                        meta: { ...windows[activeWindowId].meta, viewMode: 'list' }
+                    });
+                }
+                break;
             case 'new-window':
                 // Open a generic new Finder window for now
                 openWindow('finder', 'Finder', { width: 600, height: 400 });
