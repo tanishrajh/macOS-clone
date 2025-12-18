@@ -183,6 +183,7 @@ export const Desktop: React.FC = () => {
             className="absolute inset-0 z-0 bg-cover bg-center overflow-hidden"
             style={{ backgroundImage: wallpaper.includes('gradient') ? wallpaper : `url(${wallpaper})` }}
             initial={{ scale: 1.2, filter: 'blur(10px)' }}
+            onContextMenu={(e) => handleContextMenu(e)}
             animate={{
                 scale: isLocked ? 1.1 : 1,
                 filter: isLocked ? 'blur(0px)' : 'none'

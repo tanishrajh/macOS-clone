@@ -41,6 +41,13 @@ function App() {
   useEffect(() => {
     // Initialize FS on mount
     initFS();
+
+    // Prevent default browser context menu globally
+    const handleGlobalContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('contextmenu', handleGlobalContextMenu);
+    return () => window.removeEventListener('contextmenu', handleGlobalContextMenu);
   }, []);
 
   useEffect(() => {

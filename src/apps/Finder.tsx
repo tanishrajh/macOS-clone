@@ -270,9 +270,23 @@ export const Finder: React.FC = () => {
                     />
 
                     {/* Scrollable Content Area */}
-                    <div className="flex-1 overflow-y-auto p-4 z-10 relative h-full">
+                    <div
+                        className="flex-1 overflow-y-auto p-4 z-10 relative h-full"
+                        onContextMenu={(e) => {
+                            // Ensure clicks on empty parts of this container trigger the background menu
+                            if (e.target === e.currentTarget || e.target === e.currentTarget.firstChild) {
+                                handleContextMenu(e);
+                            }
+                        }}
+                    >
                         {viewMode === 'grid' ? (
-                            <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-4 pb-20 pointer-events-none">
+                            <div
+                                className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-4 pb-20 min-h-full"
+                                onContextMenu={(e) => {
+                                    // Grid logic
+                                    if (e.target === e.currentTarget) handleContextMenu(e);
+                                }}
+                            >
                                 {currentFiles.map((file) => (
                                     <div key={file.id}
                                         className="pointer-events-auto"
@@ -298,33 +312,36 @@ export const Finder: React.FC = () => {
                                 ))}
                             </div>
                         ) : (
-                            <table className="w-full text-sm text-left pointer-events-none">
-                                <thead className="text-gray-400 dark:text-gray-500 font-medium border-b border-gray-100 dark:border-white/5">
-                                    <tr>
-                                        <th className="pb-2 pl-2">Name</th>
-                                        <th className="pb-2">Date Modified</th>
-                                        <th className="pb-2">Kind</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-gray-700 dark:text-gray-300 pointer-events-auto">
-                                    {currentFiles.map((file) => (
-                                        <tr key={file.id} className="hover:bg-blue-50 dark:hover:bg-white/5 cursor-default transition-colors pointer-events-auto" onDoubleClick={() => file.type === 'folder' && navigateTo(file.id)} onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, file.id); }}>
-                                            <td className="py-1.5 pl-2 flex items-center gap-2 font-medium">
-                                                <div className="w-4 h-4 text-gray-500">
-                                                    <Folder size={16} fill={file.type === 'folder' ? '#60A5FA' : 'none'} className={file.type === 'folder' ? 'text-blue-400' : 'text-gray-400'} />
-                                                </div>
-                                                {file.name}
-                                            </td>
-                                            <td className="py-1.5 text-gray-500 dark:text-gray-500">{format(new Date(), 'MMM d, h:mm a')}</td>
-                                            <td className="py-1.5 text-gray-500 dark:text-gray-500">{file.type === 'folder' ? 'Folder' : 'File'}</td>
+                            <div className="min-h-full" onContextMenu={(e) => {
+                                if (e.target === e.currentTarget) handleContextMenu(e)
+                            }}>
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-gray-400 dark:text-gray-500 font-medium border-b border-gray-100 dark:border-white/5">
+                                        <tr>
+                                            <th className="pb-2 pl-2">Name</th>
+                                            <th className="pb-2">Date Modified</th>
+                                            <th className="pb-2">Kind</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="text-gray-700 dark:text-gray-300 pointer-events-auto">
+                                        {currentFiles.map((file) => (
+                                            <tr key={file.id} className="hover:bg-blue-50 dark:hover:bg-white/5 cursor-default transition-colors pointer-events-auto" onDoubleClick={() => file.type === 'folder' && navigateTo(file.id)} onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, file.id); }}>
+                                                <td className="py-1.5 pl-2 flex items-center gap-2 font-medium">
+                                                    <div className="w-4 h-4 text-gray-500">
+                                                        <Folder size={16} fill={file.type === 'folder' ? '#60A5FA' : 'none'} className={file.type === 'folder' ? 'text-blue-400' : 'text-gray-400'} />
+                                                    </div>
+                                                    {file.name}
+                                                </td>
+                                                <td className="py-1.5 text-gray-500 dark:text-gray-500">{format(new Date(), 'MMM d, h:mm a')}</td>
+                                                <td className="py-1.5 text-gray-500 dark:text-gray-500">{file.type === 'folder' ? 'Folder' : 'File'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                         )}
 
-                        {/* Interactive empty space filler at bottom of list/grid to ensure low clicks are caught if scroll content is short */}
-                        {/* We don't strictly one need since the bg catcher covers everything, 
+                                {/* Interactive empty space filler at bottom of list/grid to ensure low clicks are caught if scroll content is short */}
+                                {/* We don't strictly one need since the bg catcher covers everything, 
                             BUT if the content area has a background color that covers the catcher?
                             The bg catcher is sibling 0. The content div is sibling 1 with z-10.
                             The content div is transparent?
@@ -339,80 +356,80 @@ export const Finder: React.FC = () => {
                             So we actually need onContextMenu on the Scrollable Div OR make Scrollable Div pointer-events-none except for children.
                             I added pointer-events-none to the grid wrapper.
                         */}
-                    </div>
+                            </div>
 
                     {/* Footer / Status Bar */}
-                    <div className="h-6 border-t border-gray-200 dark:border-white/10 flex items-center px-4 text-xs text-gray-500 dark:text-gray-400 z-20 bg-[#F5F5F7]/95 dark:bg-[#2c2c2e]/95">
-                        {currentFiles.length} items
+                        <div className="h-6 border-t border-gray-200 dark:border-white/10 flex items-center px-4 text-xs text-gray-500 dark:text-gray-400 z-20 bg-[#F5F5F7]/95 dark:bg-[#2c2c2e]/95">
+                            {currentFiles.length} items
+                        </div>
                     </div>
-                </div>
 
-                {/* Context Menu Render */}
-                {contextMenu && (
-                    <ContextMenu
-                        x={contextMenu.x}
-                        y={contextMenu.y}
-                        items={getContextMenuItems()}
-                        onClose={() => setContextMenu(null)}
+                    {/* Context Menu Render */}
+                    {contextMenu && (
+                        <ContextMenu
+                            x={contextMenu.x}
+                            y={contextMenu.y}
+                            items={getContextMenuItems()}
+                            onClose={() => setContextMenu(null)}
+                        />
+                    )}
+
+                    {/* Dialogs */}
+                    <Dialog
+                        open={!!infoFile}
+                        onClose={() => setInfoFile(null)}
+                        title="Info"
+                        description={infoFile ? `Name: ${infoFile.name}\nKind: ${infoFile.type}\nCreated: ${new Date(infoFile.createdAt).toLocaleString()}` : ''}
+                        primaryAction={{ label: 'OK', onClick: () => setInfoFile(null) }}
                     />
-                )}
 
-                {/* Dialogs */}
-                <Dialog
-                    open={!!infoFile}
-                    onClose={() => setInfoFile(null)}
-                    title="Info"
-                    description={infoFile ? `Name: ${infoFile.name}\nKind: ${infoFile.type}\nCreated: ${new Date(infoFile.createdAt).toLocaleString()}` : ''}
-                    primaryAction={{ label: 'OK', onClick: () => setInfoFile(null) }}
-                />
-
-                <Dialog
-                    open={!!deleteId}
-                    onClose={() => setDeleteId(null)}
-                    title="Delete Item"
-                    description="Are you sure you want to delete this item? This action cannot be undone."
-                    type="danger"
-                    primaryAction={{
-                        label: 'Delete',
-                        danger: true,
-                        onClick: () => {
-                            if (deleteId) deleteFile(deleteId);
-                            setDeleteId(null);
-                        }
-                    }}
-                    secondaryAction={{ label: 'Cancel', onClick: () => setDeleteId(null) }}
-                />
-
-                <Dialog
-                    open={!!renameId}
-                    onClose={() => setRenameId(null)}
-                    title="Rename Item"
-                    primaryAction={{
-                        label: 'Rename',
-                        onClick: () => {
-                            if (renameId && renameName.trim()) {
-                                renameFile(renameId, renameName);
+                    <Dialog
+                        open={!!deleteId}
+                        onClose={() => setDeleteId(null)}
+                        title="Delete Item"
+                        description="Are you sure you want to delete this item? This action cannot be undone."
+                        type="danger"
+                        primaryAction={{
+                            label: 'Delete',
+                            danger: true,
+                            onClick: () => {
+                                if (deleteId) deleteFile(deleteId);
+                                setDeleteId(null);
                             }
-                            setRenameId(null);
-                        }
-                    }}
-                    secondaryAction={{ label: 'Cancel', onClick: () => setRenameId(null) }}
-                >
-                    <input
-                        type="text"
-                        value={renameName}
-                        onChange={(e) => setRenameName(e.target.value)}
-                        className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        autoFocus
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                if (renameId && renameName.trim()) renameFile(renameId, renameName);
+                        }}
+                        secondaryAction={{ label: 'Cancel', onClick: () => setDeleteId(null) }}
+                    />
+
+                    <Dialog
+                        open={!!renameId}
+                        onClose={() => setRenameId(null)}
+                        title="Rename Item"
+                        primaryAction={{
+                            label: 'Rename',
+                            onClick: () => {
+                                if (renameId && renameName.trim()) {
+                                    renameFile(renameId, renameName);
+                                }
                                 setRenameId(null);
                             }
                         }}
-                    />
-                </Dialog>
+                        secondaryAction={{ label: 'Cancel', onClick: () => setRenameId(null) }}
+                    >
+                        <input
+                            type="text"
+                            value={renameName}
+                            onChange={(e) => setRenameName(e.target.value)}
+                            className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    if (renameId && renameName.trim()) renameFile(renameId, renameName);
+                                    setRenameId(null);
+                                }
+                            }}
+                        />
+                    </Dialog>
+                </div>
             </div>
-        </div>
-    );
+            );
 };
