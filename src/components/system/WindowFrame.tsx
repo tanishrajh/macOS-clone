@@ -3,7 +3,7 @@ import { X, Minus, Maximize2 } from 'lucide-react';
 import { useWindowManager } from '../../store/window-manager';
 import type { WindowState } from '../../types/window';
 import clsx from 'clsx';
-import { motion, useMotionValue } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface WindowFrameProps {
     window: WindowState;
@@ -97,13 +97,6 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             return {
                 opacity: 0,
                 scale: 0,
-                x: window.origin.x - (window.width / 2), // Center origin relative to window size?
-                // Actually, if we scale: 0, the element is a point.
-                // We want that point to be at window.origin.x, window.origin.y
-                // Since default transform-origin is center:
-                // x should be origin.x - (currentWidth/2)
-
-                // However, initial open likely uses current window.width/height in data.
                 x: window.origin.x - (window.width / 2),
                 y: window.origin.y - (window.height / 2),
                 width: window.width,

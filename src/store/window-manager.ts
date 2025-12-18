@@ -57,6 +57,15 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
         const startX = 100 + (windowOrder.length * 20);
         const startY = 100 + (windowOrder.length * 20);
 
+        // Auto-detect origin from Dock if not provided
+        let origin = config.origin;
+        if (!origin) {
+            const dockItem = get().dockItems[appId];
+            if (dockItem) {
+                origin = { x: dockItem.x, y: dockItem.y, width: 0, height: 0 };
+            }
+        }
+
         const newWindow: WindowState = {
             id,
             appId,
@@ -70,7 +79,7 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
             maximized: false,
             isForeground: true,
             props: config.props,
-            origin: config.origin,
+            origin: origin,
             ...config
         };
 
