@@ -25,9 +25,13 @@ interface ContextMenuProps {
 export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, className }) => {
     const ref = useRef<HTMLDivElement>(null);
 
+    console.log('ContextMenu: Rendering at', x, y, items);
+
     useEffect(() => {
+        console.log('ContextMenu: Mounted');
         const handleClickOutside = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
+                console.log('ContextMenu: Clicking outside');
                 onClose();
             }
         };

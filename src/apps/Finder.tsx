@@ -94,6 +94,7 @@ export const Finder: React.FC = () => {
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileId?: string } | null>(null);
 
     const handleContextMenu = (e: React.MouseEvent, fileId?: string) => {
+        console.log('Finder: handleContextMenu', { x: e.pageX, y: e.pageY, fileId });
         e.preventDefault();
         setContextMenu({ x: e.pageX, y: e.pageY, fileId });
     };
