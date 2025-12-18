@@ -50,7 +50,7 @@ import { useSystem } from '../../store/system';
 
 export const Desktop: React.FC = () => {
     const { wallpaper } = useSettings();
-    const { files, getChildren } = useFileSystem();
+    const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { windows, openWindow } = useWindowManager();
     const { isLocked } = useSystem();
     console.log('Desktop: Windows state:', windows);
@@ -99,35 +99,84 @@ export const Desktop: React.FC = () => {
         setContextMenu({ x: e.pageX, y: e.pageY, fileId });
     };
 
+
+
     const getContextMenuItems = () => {
         if (contextMenu?.fileId) {
             // File Context Menu
             const file = files[contextMenu.fileId];
             return [
-                { label: 'Open', action: () => console.log("Open", file.name) }, // TODO: Actual Open
-                { label: 'Get Info', action: () => console.log("Get Info", file.name) },
+                {
+                    label: 'Open',
+                    action: () => {
+                        // Logic similar to double click
+                        if (file.type === 'folder') {
+                            // Desktop folders open in Finder
+                            openWindow('finder', 'Finder');
+                            // Ideally we navigate finder to this folder, but simplistic for now
+                        } else {
+                            if (file.name.endsWith('.png') || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg')) {
+                                openWindow('preview', file.name, { props: { fileId: file.id } });
+                            } else if (file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.json')) {
+                                openWindow('textedit', file.name, { props: { fileId: file.id } });
+                            } else if (file.name.endsWith('.mp3')) {
+                                openWindow('music', 'Music');
+                            } else {
+                                // Default fallback
+                                openWindow('textedit', file.name, { props: { fileId: file.id } });
+                            }
+                        }
+                    }
+                },
+                {
+                    label: 'Get Info',
+                    action: () => alert(`Name: ${file.name}\nType: ${file.type}\nSize: Unknown\nCreated: ${new Date(file.createdAt).toLocaleString()}`)
+                },
                 { separator: true },
-                { label: 'Rename', action: () => console.log("Rename", file.name) },
-                { label: 'Compress', action: () => console.log("Compress", file.name) },
+                {
+                    label: 'Rename',
+                    action: () => {
+                        const newName = prompt("Rename file:", file.name);
+                        if (newName && newName !== file.name) {
+                            renameFile(file.id, newName);
+                        }
+                    }
+                },
                 { separator: true },
-                { label: 'Move to Trash', danger: true, action: () => console.log("Trash", file.name) }, // useFileSystem delete
+                {
+                    label: 'Move to Trash',
+                    danger: true,
+                    action: () => {
+                        if (confirm(`Are you sure you want to delete "${file.name}"?`)) {
+                            deleteFile(file.id);
+                        }
+                    }
+                },
             ];
         } else {
             // Background Context Menu
             return [
-                { label: 'New Folder', action: () => console.log("New Folder") },
-                { label: 'Get Info', action: () => console.log("Get Info Desktop") },
+                {
+                    label: 'New Folder',
+                    action: () => {
+                        if (desktopFolderId) {
+                            createFolder(desktopFolderId, 'New Folder');
+                        }
+                    }
+                },
+                {
+                    label: 'Get Info',
+                    action: () => alert("Desktop\nLocation: /Users/user/Desktop")
+                },
                 { separator: true },
                 { label: 'Change Wallpaper...', action: () => openWindow('settings', 'System Settings') },
                 { separator: true },
-                { label: 'Sort By', submenu: [] },
-                { label: 'Clean Up', action: () => console.log("Clean Up") },
+                { label: 'Clean Up', action: () => setSelectedIds(new Set()) },
             ];
         }
     };
 
     // Import ContextMenu (assuming it is available from previous step)
-    // Note: We need to import it at the top, I'll add the import in a separate tool call if needed or just assume. 
     // Wait, adding imports with replace_file_content at the top is safer.
 
     return (

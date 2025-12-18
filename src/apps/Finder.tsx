@@ -29,7 +29,7 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
 );
 
 export const Finder: React.FC = () => {
-    const { files, getChildren } = useFileSystem();
+    const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { openWindow } = useWindowManager();
     const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -104,20 +104,60 @@ export const Finder: React.FC = () => {
                 {
                     label: 'Open', action: () => {
                         if (file.type === 'folder') navigateTo(file.id);
-                        // Add logic for opening files if needed, but double click covers it mostly
+                        else {
+                            if (file.name.endsWith('.png') || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg')) {
+                                openWindow('preview', file.name, { props: { fileId: file.id } });
+                            } else if (file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.json')) {
+                                openWindow('textedit', file.name, { props: { fileId: file.id } });
+                            } else if (file.name.endsWith('.mp3')) {
+                                openWindow('music', 'Music');
+                            }
+                        }
                     }
                 },
-                { label: 'Get Info', action: () => console.log("Get Info", file.name) },
+                {
+                    label: 'Get Info',
+                    action: () => alert(`Name: ${file.name}\nType: ${file.type}\nCreated: ${new Date(file.createdAt).toLocaleString()}`)
+                },
                 { separator: true },
-                { label: 'Rename', action: () => console.log("Rename", file.name) },
+                {
+                    label: 'Rename',
+                    action: () => {
+                        const newName = prompt("Rename file:", file.name);
+                        if (newName && newName !== file.name) {
+                            renameFile(file.id, newName);
+                        }
+                    }
+                },
                 { separator: true },
-                { label: 'Move to Trash', danger: true, action: () => console.log("Trash", file.name) },
+                {
+                    label: 'Move to Trash',
+                    danger: true,
+                    action: () => {
+                        if (confirm(`Are you sure you want to delete "${file.name}"?`)) {
+                            deleteFile(file.id);
+                        }
+                    }
+                },
             ];
         } else {
             // Background options
             return [
-                { label: 'New Folder', action: () => console.log("New Folder") },
-                { label: 'Get Info', action: () => console.log("Get Info Folder") },
+                {
+                    label: 'New Folder',
+                    action: () => {
+                        if (currentFolderId) {
+                            createFolder(currentFolderId, 'New Folder');
+                        }
+                    }
+                },
+                {
+                    label: 'Get Info',
+                    action: () => {
+                        const folder = currentFolderId ? files[currentFolderId] : null;
+                        alert(`Folder: ${folder?.name || 'Root'}\nItems: ${currentFiles.length}`);
+                    }
+                },
                 { separator: true },
                 { label: 'View as List', action: () => setViewMode('list') },
                 { label: 'View as Grid', action: () => setViewMode('grid') },
@@ -244,7 +284,10 @@ export const Finder: React.FC = () => {
                 </div>
 
                 {/* File View */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div
+                    className="flex-1 overflow-y-auto p-4"
+                    onContextMenu={(e) => handleContextMenu(e)}
+                >
                     {viewMode === 'grid' ? (
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-4">
                             {currentFiles.map((file) => (
