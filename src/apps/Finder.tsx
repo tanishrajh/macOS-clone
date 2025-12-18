@@ -258,139 +258,160 @@ export const Finder: React.FC = () => {
                     </div>
                 </div>
 
-                {/* File View - FIX: Added min-h-full to ensure it covers empty space */}
-                <div
-                    className="flex-1 overflow-y-auto p-4 h-full min-h-0"
-                    onContextMenu={(e) => handleContextMenu(e)}
-                >
-                    {/* Add a invisible full overlay to catch clicks if content is short? 
-                        Actually flex-1 should fill. But let's check grid.
-                    */}
-                    {viewMode === 'grid' ? (
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-4 pb-20">
-                            {currentFiles.map((file) => (
-                                <div key={file.id} onDoubleClick={() => {
-                                    if (file.type === 'folder') {
-                                        navigateTo(file.id);
-                                    } else {
-                                        // Open logic... (simplified in view)
-                                        console.log("Open", file.name);
-                                    }
-                                }}>
-                                    <FileIcon
-                                        file={file}
-                                        selected={false}
-                                        onClick={() => { }}
-                                        showLabel={true}
-                                        darkLabel
-                                        onContextMenu={(e) => {
-                                            e.stopPropagation();
-                                            handleContextMenu(e, file.id);
-                                        }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-gray-400 dark:text-gray-500 font-medium border-b border-gray-100 dark:border-white/5">
-                                <tr>
-                                    <th className="pb-2 pl-2">Name</th>
-                                    <th className="pb-2">Date Modified</th>
-                                    <th className="pb-2">Kind</th>
-                                </tr>
-                            </thead>
-                            <tbody className="text-gray-700 dark:text-gray-300">
+                {/* File View */}
+                <div className="flex-1 relative overflow-hidden flex flex-col">
+                    {/* Background Click Catcher - Absolute */}
+                    <div
+                        className="absolute inset-0 z-0 bg-transparent"
+                        onContextMenu={(e) => handleContextMenu(e)}
+                        onClick={() => {
+                            // Optional: clear selection if we had file selection state
+                        }}
+                    />
+
+                    {/* Scrollable Content Area */}
+                    <div className="flex-1 overflow-y-auto p-4 z-10 relative h-full">
+                        {viewMode === 'grid' ? (
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-4 pb-20 pointer-events-none">
                                 {currentFiles.map((file) => (
-                                    <tr key={file.id} className="hover:bg-blue-50 dark:hover:bg-white/5 cursor-default transition-colors" onDoubleClick={() => file.type === 'folder' && navigateTo(file.id)} onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, file.id); }}>
-                                        <td className="py-1.5 pl-2 flex items-center gap-2 font-medium">
-                                            <div className="w-4 h-4 text-gray-500">
-                                                <Folder size={16} fill={file.type === 'folder' ? '#60A5FA' : 'none'} className={file.type === 'folder' ? 'text-blue-400' : 'text-gray-400'} />
-                                            </div>
-                                            {file.name}
-                                        </td>
-                                        <td className="py-1.5 text-gray-500 dark:text-gray-500">{format(new Date(), 'MMM d, h:mm a')}</td>
-                                        <td className="py-1.5 text-gray-500 dark:text-gray-500">{file.type === 'folder' ? 'Folder' : 'File'}</td>
-                                    </tr>
+                                    <div key={file.id}
+                                        className="pointer-events-auto"
+                                        onDoubleClick={() => {
+                                            if (file.type === 'folder') {
+                                                navigateTo(file.id);
+                                            } else {
+                                                console.log("Open", file.name);
+                                            }
+                                        }}>
+                                        <FileIcon
+                                            file={file}
+                                            selected={false}
+                                            onClick={() => { }}
+                                            showLabel={true}
+                                            darkLabel
+                                            onContextMenu={(e) => {
+                                                e.stopPropagation();
+                                                handleContextMenu(e, file.id);
+                                            }}
+                                        />
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
-                    )}
-                    {/* Add interactive empty area if needed */}
-                    <div className="flex-1 min-h-[50%]" onClick={() => { }} />
+                            </div>
+                        ) : (
+                            <table className="w-full text-sm text-left pointer-events-none">
+                                <thead className="text-gray-400 dark:text-gray-500 font-medium border-b border-gray-100 dark:border-white/5">
+                                    <tr>
+                                        <th className="pb-2 pl-2">Name</th>
+                                        <th className="pb-2">Date Modified</th>
+                                        <th className="pb-2">Kind</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-gray-700 dark:text-gray-300 pointer-events-auto">
+                                    {currentFiles.map((file) => (
+                                        <tr key={file.id} className="hover:bg-blue-50 dark:hover:bg-white/5 cursor-default transition-colors pointer-events-auto" onDoubleClick={() => file.type === 'folder' && navigateTo(file.id)} onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, file.id); }}>
+                                            <td className="py-1.5 pl-2 flex items-center gap-2 font-medium">
+                                                <div className="w-4 h-4 text-gray-500">
+                                                    <Folder size={16} fill={file.type === 'folder' ? '#60A5FA' : 'none'} className={file.type === 'folder' ? 'text-blue-400' : 'text-gray-400'} />
+                                                </div>
+                                                {file.name}
+                                            </td>
+                                            <td className="py-1.5 text-gray-500 dark:text-gray-500">{format(new Date(), 'MMM d, h:mm a')}</td>
+                                            <td className="py-1.5 text-gray-500 dark:text-gray-500">{file.type === 'folder' ? 'Folder' : 'File'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+
+                        {/* Interactive empty space filler at bottom of list/grid to ensure low clicks are caught if scroll content is short */}
+                        {/* We don't strictly one need since the bg catcher covers everything, 
+                            BUT if the content area has a background color that covers the catcher?
+                            The bg catcher is sibling 0. The content div is sibling 1 with z-10.
+                            The content div is transparent?
+                            Main Content bg is white.
+                            So `bg-white` is on the parent of this block.
+                            So the bg catcher is covering the white bg.
+                            The content div (z-10) is also transparent.
+                            So clicks on empty space in z-10 go THROUGH to z-0? 
+                            Standard CSS pointer-events: auto on a div catches clicks even if transparent.
+                            So the scrollable div (z-10) BLOCKS the catcher (z-0)?
+                            YES. 
+                            So we actually need onContextMenu on the Scrollable Div OR make Scrollable Div pointer-events-none except for children.
+                            I added pointer-events-none to the grid wrapper.
+                        */}
+                    </div>
+
+                    {/* Footer / Status Bar */}
+                    <div className="h-6 border-t border-gray-200 dark:border-white/10 flex items-center px-4 text-xs text-gray-500 dark:text-gray-400 z-20 bg-[#F5F5F7]/95 dark:bg-[#2c2c2e]/95">
+                        {currentFiles.length} items
+                    </div>
                 </div>
 
-                {/* Footer / Status Bar */}
-                <div className="h-6 border-t border-gray-200 dark:border-white/10 flex items-center px-4 text-xs text-gray-500 dark:text-gray-400">
-                    {currentFiles.length} items
-                </div>
-            </div>
+                {/* Context Menu Render */}
+                {contextMenu && (
+                    <ContextMenu
+                        x={contextMenu.x}
+                        y={contextMenu.y}
+                        items={getContextMenuItems()}
+                        onClose={() => setContextMenu(null)}
+                    />
+                )}
 
-            {/* Context Menu Render */}
-            {contextMenu && (
-                <ContextMenu
-                    x={contextMenu.x}
-                    y={contextMenu.y}
-                    items={getContextMenuItems()}
-                    onClose={() => setContextMenu(null)}
+                {/* Dialogs */}
+                <Dialog
+                    open={!!infoFile}
+                    onClose={() => setInfoFile(null)}
+                    title="Info"
+                    description={infoFile ? `Name: ${infoFile.name}\nKind: ${infoFile.type}\nCreated: ${new Date(infoFile.createdAt).toLocaleString()}` : ''}
+                    primaryAction={{ label: 'OK', onClick: () => setInfoFile(null) }}
                 />
-            )}
 
-            {/* Dialogs */}
-            <Dialog
-                open={!!infoFile}
-                onClose={() => setInfoFile(null)}
-                title="Info"
-                description={infoFile ? `Name: ${infoFile.name}\nKind: ${infoFile.type}\nCreated: ${new Date(infoFile.createdAt).toLocaleString()}` : ''}
-                primaryAction={{ label: 'OK', onClick: () => setInfoFile(null) }}
-            />
-
-            <Dialog
-                open={!!deleteId}
-                onClose={() => setDeleteId(null)}
-                title="Delete Item"
-                description="Are you sure you want to delete this item? This action cannot be undone."
-                type="danger"
-                primaryAction={{
-                    label: 'Delete',
-                    danger: true,
-                    onClick: () => {
-                        if (deleteId) deleteFile(deleteId);
-                        setDeleteId(null);
-                    }
-                }}
-                secondaryAction={{ label: 'Cancel', onClick: () => setDeleteId(null) }}
-            />
-
-            <Dialog
-                open={!!renameId}
-                onClose={() => setRenameId(null)}
-                title="Rename Item"
-                primaryAction={{
-                    label: 'Rename',
-                    onClick: () => {
-                        if (renameId && renameName.trim()) {
-                            renameFile(renameId, renameName);
+                <Dialog
+                    open={!!deleteId}
+                    onClose={() => setDeleteId(null)}
+                    title="Delete Item"
+                    description="Are you sure you want to delete this item? This action cannot be undone."
+                    type="danger"
+                    primaryAction={{
+                        label: 'Delete',
+                        danger: true,
+                        onClick: () => {
+                            if (deleteId) deleteFile(deleteId);
+                            setDeleteId(null);
                         }
-                        setRenameId(null);
-                    }
-                }}
-                secondaryAction={{ label: 'Cancel', onClick: () => setRenameId(null) }}
-            >
-                <input
-                    type="text"
-                    value={renameName}
-                    onChange={(e) => setRenameName(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    autoFocus
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            if (renameId && renameName.trim()) renameFile(renameId, renameName);
+                    }}
+                    secondaryAction={{ label: 'Cancel', onClick: () => setDeleteId(null) }}
+                />
+
+                <Dialog
+                    open={!!renameId}
+                    onClose={() => setRenameId(null)}
+                    title="Rename Item"
+                    primaryAction={{
+                        label: 'Rename',
+                        onClick: () => {
+                            if (renameId && renameName.trim()) {
+                                renameFile(renameId, renameName);
+                            }
                             setRenameId(null);
                         }
                     }}
-                />
-            </Dialog>
-        </div>
-    );
+                    secondaryAction={{ label: 'Cancel', onClick: () => setRenameId(null) }}
+                >
+                    <input
+                        type="text"
+                        value={renameName}
+                        onChange={(e) => setRenameName(e.target.value)}
+                        className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        autoFocus
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                if (renameId && renameName.trim()) renameFile(renameId, renameName);
+                                setRenameId(null);
+                            }
+                        }}
+                    />
+                </Dialog>
+            </div>
+            );
 };

@@ -182,8 +182,6 @@ export const Desktop: React.FC = () => {
         <motion.div
             className="absolute inset-0 z-0 bg-cover bg-center overflow-hidden"
             style={{ backgroundImage: wallpaper.includes('gradient') ? wallpaper : `url(${wallpaper})` }}
-            onClick={handleBackgroundClick}
-            onContextMenu={(e) => handleContextMenu(e)}
             initial={{ scale: 1.2, filter: 'blur(10px)' }}
             animate={{
                 scale: isLocked ? 1.1 : 1,
@@ -191,10 +189,17 @@ export const Desktop: React.FC = () => {
             }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-            <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+            {/* Background Interaction Layer - Explicitly catches clicks */}
+            <div
+                className="absolute inset-0 z-0"
+                onClick={handleBackgroundClick}
+                onContextMenu={(e) => handleContextMenu(e)}
+            />
+
+            <div className="absolute inset-0 bg-black/10 pointer-events-none z-[1]" />
 
             {/* Desktop Icons */}
-            <div className="grid grid-flow-col grid-rows-[repeat(auto-fill,6rem)] gap-4 p-4 pt-10 content-start items-start justify-items-center w-full h-full pointer-events-none">
+            <div className="grid grid-flow-col grid-rows-[repeat(auto-fill,6rem)] gap-4 p-4 pt-10 content-start items-start justify-items-center w-full h-full pointer-events-none z-[2] relative">
                 {desktopFiles.map((file) => (
                     <div key={file.id} className="pointer-events-auto">
                         <FileIcon
