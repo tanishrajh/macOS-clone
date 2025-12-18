@@ -413,5 +413,6 @@ export const Finder: React.FC = () => {
                     />
                 </Dialog>
             </div>
-            );
+        </div>
+    );
 };
