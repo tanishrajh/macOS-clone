@@ -78,15 +78,11 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const getOriginState = () => {
         if (window.minimized && dockPos) {
             // Minimize to Dock logic
-            // We want to scale DOWN to the dock icon
-            // Framer Motion handles "layout" changes, but here we are manual.
-            // Simplified: Translate to dock pos and scale 0.
             return {
                 opacity: 0,
-                scale: 0,
+                scale: 0.05,
                 x: dockPos.x - (window.width / 2),
                 y: dockPos.y - (window.height / 2),
-                // Keep dimensions to maintain aspect ratio during shrink
                 width: window.width,
                 height: window.height
             };
@@ -94,11 +90,13 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
         // If we have an origin (Opening animation)
         if (window.origin) {
+            const originX = window.origin.x || 0;
+            const originY = window.origin.y || 0;
             return {
                 opacity: 0,
-                scale: 0,
-                x: window.origin.x - (window.width / 2),
-                y: window.origin.y - (window.height / 2),
+                scale: 0.05,
+                x: originX - (window.width / 2),
+                y: originY - (window.height / 2),
                 width: window.width,
                 height: window.height
             };
@@ -114,9 +112,6 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             height: window.height
         };
     };
-
-    // Debug
-    console.log('WindowFrame Debug:', { id: window.id, origin: window.origin, minimized: window.minimized, normalState, originState: getOriginState() });
 
     return (
         <motion.div
