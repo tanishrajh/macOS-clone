@@ -126,7 +126,10 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             )}
             initial={getOriginState()}
             animate={window.minimized ? getOriginState() : normalState}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} // Apple-like easing
+            transition={isDragging
+                ? { duration: 0 }
+                : { duration: 0.4, ease: [0.16, 1, 0.3, 1] }
+            }
             style={{
                 zIndex: window.zIndex,
                 pointerEvents: window.minimized ? 'none' : 'auto',
