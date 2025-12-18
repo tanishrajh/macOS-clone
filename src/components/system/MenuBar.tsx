@@ -9,6 +9,7 @@ import { useSystem } from '../../store/system';
 import { MenuBarMenus } from './MenuBarMenus';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog } from './Dialog';
+import { CalendarWidget } from './CalendarWidget';
 
 export const MenuBar: React.FC = () => {
     const [time, setTime] = useState(new Date());
@@ -16,6 +17,7 @@ export const MenuBar: React.FC = () => {
     const { setSleeping, setLocked } = useSystem();
     const { wifi } = useSettings();
     const [controlCenterOpen, setControlCenterOpen] = useState(false);
+    const [calendarOpen, setCalendarOpen] = useState(false);
     const [appleMenuOpen, setAppleMenuOpen] = useState(false);
 
     // Dialog States
@@ -264,7 +266,7 @@ export const MenuBar: React.FC = () => {
                                     animate={{ opacity: 1, scale: 1, x: 0, y: 0, filter: "blur(0px)" }}
                                     exit={{ opacity: 0, scale: 0.1, x: 0, y: -10, filter: "blur(12px)" }}
                                     transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                                    style={{ transformOrigin: "calc(100% - 14px) -12px" }} // Adjusted for relative anchor: ~center of 28px icon button
+                                    style={{ transformOrigin: "calc(100% - 14px) -12px" }}
                                     className="absolute top-8 right-0 z-[5001]"
                                 >
                                     <ControlCenter isOpen={true} onClose={() => setControlCenterOpen(false)} />
@@ -273,9 +275,30 @@ export const MenuBar: React.FC = () => {
                         </AnimatePresence>
                     </div>
 
-                    <span className="cursor-default min-w-[130px] text-right font-medium">
+                    <div
+                        className={clsx("relative cursor-default min-w-[130px] text-right font-medium hover:bg-white/10 px-2 py-0.5 rounded transition-colors", calendarOpen && "bg-white/10")}
+                        onClick={() => setCalendarOpen(!calendarOpen)}
+                    >
                         {format(time, 'EEE d MMM h:mm aa')}
-                    </span>
+
+                        <AnimatePresence>
+                            {calendarOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40 bg-transparent" onClick={(e) => { e.stopPropagation(); setCalendarOpen(false); }} />
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.1, x: 0, y: -20, filter: "blur(12px)" }}
+                                        animate={{ opacity: 1, scale: 1, x: 0, y: 0, filter: "blur(0px)" }}
+                                        exit={{ opacity: 0, scale: 0.1, x: 0, y: -10, filter: "blur(12px)" }}
+                                        transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                                        style={{ transformOrigin: "calc(100% - 65px) -12px" }} // Approx center of the wide text clock
+                                        className="absolute top-8 right-0 z-[5001] w-[320px] mac-glass rounded-xl shadow-2xl border border-white/20 text-white"
+                                    >
+                                        <CalendarWidget />
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
         </div>
