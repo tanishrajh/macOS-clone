@@ -27,32 +27,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, 
 
     console.log('ContextMenu: Rendering at', x, y, items);
 
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                onClose();
-            }
-        };
+    // Simplified closing logic: Use an invisible backdrop
+    // This is more robust than window listeners in complex React trees
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+    };
 
-        const handleRightClickOutside = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                onClose();
-            }
-        };
-
-        const timer = setTimeout(() => {
-            window.addEventListener('click', handleClickOutside);
-            window.addEventListener('contextmenu', handleRightClickOutside);
-        }, 50);
-
-        return () => {
-            clearTimeout(timer);
-            window.removeEventListener('click', handleClickOutside);
-            window.removeEventListener('contextmenu', handleRightClickOutside);
-        };
-    }, [onClose]);
-
-    // Adjust position if out of bounds (simplified)
     const style = {
         top: y,
         left: x,
@@ -60,6 +42,13 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, 
 
     return createPortal(
         <AnimatePresence>
+            {/* Invisible Backdrop to catch clicks outside */}
+            <div
+                className="fixed inset-0 z-[99998] bg-transparent"
+                onClick={handleBackdropClick}
+                onContextMenu={handleBackdropClick}
+            />
+
             <motion.div
                 ref={ref}
                 initial={{ opacity: 0, scale: 0.95 }}

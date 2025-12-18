@@ -167,7 +167,12 @@ export const Desktop: React.FC = () => {
                 },
                 {
                     label: 'Get Info',
-                    action: () => alert("Desktop\nLocation: /Users/user/Desktop") // Keep simple for desktop bg for now or make a dialog
+                    action: () => setInfoFile({
+                        name: 'Desktop',
+                        type: 'Folder',
+                        createdAt: new Date().toISOString(),
+                        isDesktop: true
+                    })
                 },
                 { separator: true },
                 { label: 'Change Wallpaper...', action: () => openWindow('settings', 'System Settings') },
