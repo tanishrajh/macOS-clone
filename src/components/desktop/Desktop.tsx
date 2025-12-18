@@ -5,6 +5,7 @@ import { useWindowManager } from '../../store/window-manager';
 import { FileIcon } from '../system/FileIcon';
 import { WindowFrame } from '../system/WindowFrame';
 import { ContextMenu } from '../system/ContextMenu';
+import { Dialog } from '../system/Dialog';
 
 // Apps
 // Apps - Lazy Load for Performance
@@ -99,7 +100,11 @@ export const Desktop: React.FC = () => {
         setContextMenu({ x: e.pageX, y: e.pageY, fileId });
     };
 
-
+    // Dialog States
+    const [infoFile, setInfoFile] = useState<any>(null);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [renameId, setRenameId] = useState<string | null>(null);
+    const [renameName, setRenameName] = useState("");
 
     const getContextMenuItems = () => {
         if (contextMenu?.fileId) {
@@ -130,27 +135,21 @@ export const Desktop: React.FC = () => {
                 },
                 {
                     label: 'Get Info',
-                    action: () => alert(`Name: ${file.name}\nType: ${file.type}\nSize: Unknown\nCreated: ${new Date(file.createdAt).toLocaleString()}`)
+                    action: () => setInfoFile(file)
                 },
                 { separator: true },
                 {
                     label: 'Rename',
                     action: () => {
-                        const newName = prompt("Rename file:", file.name);
-                        if (newName && newName !== file.name) {
-                            renameFile(file.id, newName);
-                        }
+                        setRenameId(file.id);
+                        setRenameName(file.name);
                     }
                 },
                 { separator: true },
                 {
                     label: 'Move to Trash',
                     danger: true,
-                    action: () => {
-                        if (confirm(`Are you sure you want to delete "${file.name}"?`)) {
-                            deleteFile(file.id);
-                        }
-                    }
+                    action: () => setDeleteId(file.id)
                 },
             ];
         } else {
@@ -166,7 +165,7 @@ export const Desktop: React.FC = () => {
                 },
                 {
                     label: 'Get Info',
-                    action: () => alert("Desktop\nLocation: /Users/user/Desktop")
+                    action: () => alert("Desktop\nLocation: /Users/user/Desktop") // Keep simple for desktop bg for now or make a dialog
                 },
                 { separator: true },
                 { label: 'Change Wallpaper...', action: () => openWindow('settings', 'System Settings') },
@@ -221,6 +220,62 @@ export const Desktop: React.FC = () => {
                     onClose={() => setContextMenu(null)}
                 />
             )}
+
+            {/* Dialogs */}
+            <Dialog
+                open={!!infoFile}
+                onClose={() => setInfoFile(null)}
+                title="File Info"
+                description={infoFile ? `Name: ${infoFile.name}\nKind: ${infoFile.type === 'folder' ? 'Folder' : 'File'}\nCreated: ${new Date(infoFile.createdAt).toLocaleString()}` : ''}
+                primaryAction={{ label: 'OK', onClick: () => setInfoFile(null) }}
+            />
+
+            <Dialog
+                open={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                title="Delete File"
+                description="Are you sure you want to move this item to the Trash?"
+                type="danger"
+                primaryAction={{
+                    label: 'Delete',
+                    danger: true,
+                    onClick: () => {
+                        if (deleteId) deleteFile(deleteId);
+                        setDeleteId(null);
+                    }
+                }}
+                secondaryAction={{ label: 'Cancel', onClick: () => setDeleteId(null) }}
+            />
+
+            <Dialog
+                open={!!renameId}
+                onClose={() => setRenameId(null)}
+                title="Rename File"
+                primaryAction={{
+                    label: 'Rename',
+                    onClick: () => {
+                        if (renameId && renameName.trim()) {
+                            renameFile(renameId, renameName);
+                        }
+                        setRenameId(null);
+                    }
+                }}
+                secondaryAction={{ label: 'Cancel', onClick: () => setRenameId(null) }}
+            >
+                <input
+                    type="text"
+                    value={renameName}
+                    onChange={(e) => setRenameName(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    autoFocus
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            if (renameId && renameName.trim()) renameFile(renameId, renameName);
+                            setRenameId(null);
+                        }
+                    }}
+                />
+            </Dialog>
 
             {/* Windows Layer */}
             {Object.values(windows).map((window) => {
