@@ -115,6 +115,9 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         };
     };
 
+    // Debug
+    console.log('WindowFrame Debug:', { id: window.id, origin: window.origin, minimized: window.minimized, normalState, originState: getOriginState() });
+
     return (
         <motion.div
             className={clsx(
