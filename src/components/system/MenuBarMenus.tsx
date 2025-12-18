@@ -104,6 +104,20 @@ export const MenuBarMenus: React.FC = () => {
             case 'print':
                 window.print();
                 break;
+
+            // Edit Menu
+            case 'undo': document.execCommand('undo'); break;
+            case 'redo': document.execCommand('redo'); break;
+            case 'cut': document.execCommand('cut'); break;
+            case 'copy': document.execCommand('copy'); break;
+            case 'paste':
+                navigator.clipboard.readText().then(text => {
+                    document.execCommand('insertText', false, text);
+                }).catch(err => {
+                    console.error('Failed to read clipboard', err);
+                });
+                break;
+            case 'select-all': document.execCommand('selectAll'); break;
             case 'help':
                 openWindow('safari', 'Safari', { props: { url: 'https://support.apple.com/macos' } });
                 break;
