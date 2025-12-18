@@ -40,7 +40,15 @@ export const MenuBar: React.FC = () => {
 
     const handleSleep = () => { setAppleMenuOpen(false); setSleeping(true); };
     const handleClickLock = () => { setAppleMenuOpen(false); setLocked(true); }; // Renamed to avoid collision with generic lock handler if any
-    const handleOpenSettings = () => { setAppleMenuOpen(false); openWindow('settings', 'System Settings', { width: 800, height: 600 }); };
+    const handleOpenSettings = (e: React.MouseEvent) => {
+        setAppleMenuOpen(false);
+        const rect = e.currentTarget.getBoundingClientRect();
+        openWindow('settings', 'System Settings', {
+            width: 800,
+            height: 600,
+            origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: rect.width, height: rect.height }
+        });
+    };
 
     return (
         <div className="h-[30px] w-full bg-black/20 backdrop-blur-xl flex items-center justify-between px-2 text-[13px] font-medium text-white shadow-sm absolute top-0 z-[5000] select-none border-b border-white/5">
@@ -67,12 +75,20 @@ export const MenuBar: React.FC = () => {
                                 >
                                     <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowAbout(true); }}>About This Mac</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleOpenSettings}>System Settings...</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); openWindow('appstore', 'App Store'); }}>App Store...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={(e) => handleOpenSettings(e)}>System Settings...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={(e) => {
+                                        setAppleMenuOpen(false);
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        openWindow('appstore', 'App Store', { origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: rect.width, height: rect.height } });
+                                    }}>App Store...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
                                     <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default opacity-50">Recent Items</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); openWindow('activity', 'Activity Monitor'); }}>Force Quit...</div>
+                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={(e) => {
+                                        setAppleMenuOpen(false);
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        openWindow('activity', 'Activity Monitor', { origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: rect.width, height: rect.height } });
+                                    }}>Force Quit...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
                                     <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleSleep}>Sleep</div>
                                     <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowRestart(true); }}>Restart...</div>

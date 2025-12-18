@@ -83,8 +83,16 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ isOpen, onClose }) => {
                                 className="flex flex-col items-center gap-3 group cursor-pointer"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => {
-                                    openWindow(app.id, app.name);
+                                onClick={(e) => {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    openWindow(app.id, app.name, {
+                                        origin: {
+                                            x: rect.left + rect.width / 2,
+                                            y: rect.top + rect.height / 2,
+                                            width: rect.width,
+                                            height: rect.height
+                                        }
+                                    });
                                     onClose();
                                 }}
                             >
