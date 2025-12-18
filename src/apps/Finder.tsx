@@ -338,10 +338,11 @@ export const Finder: React.FC = () => {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
                         )}
 
-                                {/* Interactive empty space filler at bottom of list/grid to ensure low clicks are caught if scroll content is short */}
-                                {/* We don't strictly one need since the bg catcher covers everything, 
+                        {/* Interactive empty space filler at bottom of list/grid to ensure low clicks are caught if scroll content is short */}
+                        {/* We don't strictly one need since the bg catcher covers everything, 
                             BUT if the content area has a background color that covers the catcher?
                             The bg catcher is sibling 0. The content div is sibling 1 with z-10.
                             The content div is transparent?
@@ -356,80 +357,80 @@ export const Finder: React.FC = () => {
                             So we actually need onContextMenu on the Scrollable Div OR make Scrollable Div pointer-events-none except for children.
                             I added pointer-events-none to the grid wrapper.
                         */}
-                            </div>
-
-                    {/* Footer / Status Bar */}
-                        <div className="h-6 border-t border-gray-200 dark:border-white/10 flex items-center px-4 text-xs text-gray-500 dark:text-gray-400 z-20 bg-[#F5F5F7]/95 dark:bg-[#2c2c2e]/95">
-                            {currentFiles.length} items
-                        </div>
                     </div>
 
-                    {/* Context Menu Render */}
-                    {contextMenu && (
-                        <ContextMenu
-                            x={contextMenu.x}
-                            y={contextMenu.y}
-                            items={getContextMenuItems()}
-                            onClose={() => setContextMenu(null)}
-                        />
-                    )}
+                    {/* Footer / Status Bar */}
+                    <div className="h-6 border-t border-gray-200 dark:border-white/10 flex items-center px-4 text-xs text-gray-500 dark:text-gray-400 z-20 bg-[#F5F5F7]/95 dark:bg-[#2c2c2e]/95">
+                        {currentFiles.length} items
+                    </div>
+                </div>
 
-                    {/* Dialogs */}
-                    <Dialog
-                        open={!!infoFile}
-                        onClose={() => setInfoFile(null)}
-                        title="Info"
-                        description={infoFile ? `Name: ${infoFile.name}\nKind: ${infoFile.type}\nCreated: ${new Date(infoFile.createdAt).toLocaleString()}` : ''}
-                        primaryAction={{ label: 'OK', onClick: () => setInfoFile(null) }}
+                {/* Context Menu Render */}
+                {contextMenu && (
+                    <ContextMenu
+                        x={contextMenu.x}
+                        y={contextMenu.y}
+                        items={getContextMenuItems()}
+                        onClose={() => setContextMenu(null)}
                     />
+                )}
 
-                    <Dialog
-                        open={!!deleteId}
-                        onClose={() => setDeleteId(null)}
-                        title="Delete Item"
-                        description="Are you sure you want to delete this item? This action cannot be undone."
-                        type="danger"
-                        primaryAction={{
-                            label: 'Delete',
-                            danger: true,
-                            onClick: () => {
-                                if (deleteId) deleteFile(deleteId);
-                                setDeleteId(null);
+                {/* Dialogs */}
+                <Dialog
+                    open={!!infoFile}
+                    onClose={() => setInfoFile(null)}
+                    title="Info"
+                    description={infoFile ? `Name: ${infoFile.name}\nKind: ${infoFile.type}\nCreated: ${new Date(infoFile.createdAt).toLocaleString()}` : ''}
+                    primaryAction={{ label: 'OK', onClick: () => setInfoFile(null) }}
+                />
+
+                <Dialog
+                    open={!!deleteId}
+                    onClose={() => setDeleteId(null)}
+                    title="Delete Item"
+                    description="Are you sure you want to delete this item? This action cannot be undone."
+                    type="danger"
+                    primaryAction={{
+                        label: 'Delete',
+                        danger: true,
+                        onClick: () => {
+                            if (deleteId) deleteFile(deleteId);
+                            setDeleteId(null);
+                        }
+                    }}
+                    secondaryAction={{ label: 'Cancel', onClick: () => setDeleteId(null) }}
+                />
+
+                <Dialog
+                    open={!!renameId}
+                    onClose={() => setRenameId(null)}
+                    title="Rename Item"
+                    primaryAction={{
+                        label: 'Rename',
+                        onClick: () => {
+                            if (renameId && renameName.trim()) {
+                                renameFile(renameId, renameName);
                             }
-                        }}
-                        secondaryAction={{ label: 'Cancel', onClick: () => setDeleteId(null) }}
-                    />
-
-                    <Dialog
-                        open={!!renameId}
-                        onClose={() => setRenameId(null)}
-                        title="Rename Item"
-                        primaryAction={{
-                            label: 'Rename',
-                            onClick: () => {
-                                if (renameId && renameName.trim()) {
-                                    renameFile(renameId, renameName);
-                                }
+                            setRenameId(null);
+                        }
+                    }}
+                    secondaryAction={{ label: 'Cancel', onClick: () => setRenameId(null) }}
+                >
+                    <input
+                        type="text"
+                        value={renameName}
+                        onChange={(e) => setRenameName(e.target.value)}
+                        className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        autoFocus
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                if (renameId && renameName.trim()) renameFile(renameId, renameName);
                                 setRenameId(null);
                             }
                         }}
-                        secondaryAction={{ label: 'Cancel', onClick: () => setRenameId(null) }}
-                    >
-                        <input
-                            type="text"
-                            value={renameName}
-                            onChange={(e) => setRenameName(e.target.value)}
-                            className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                            autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    if (renameId && renameName.trim()) renameFile(renameId, renameName);
-                                    setRenameId(null);
-                                }
-                            }}
-                        />
-                    </Dialog>
-                </div>
+                    />
+                </Dialog>
             </div>
-            );
+        </div>
+    );
 };
