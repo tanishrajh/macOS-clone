@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { useSettings } from '../../store/settings';
 import { useSystem } from '../../store/system';
 import { MenuBarMenus } from './MenuBarMenus';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog } from './Dialog';
 
 export const MenuBar: React.FC = () => {
