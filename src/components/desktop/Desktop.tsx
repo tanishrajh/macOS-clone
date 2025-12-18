@@ -98,6 +98,7 @@ export const Desktop: React.FC = () => {
     const handleContextMenu = (e: React.MouseEvent, fileId?: string) => {
         console.log('Desktop: handleContextMenu', { x: e.pageX, y: e.pageY, fileId });
         e.preventDefault();
+        e.stopPropagation(); // Prevent bubbling to wrapper or other handlers
         setContextMenu({ x: e.pageX, y: e.pageY, fileId });
     };
 

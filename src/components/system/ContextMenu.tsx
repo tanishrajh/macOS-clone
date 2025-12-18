@@ -28,25 +28,27 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, 
     console.log('ContextMenu: Rendering at', x, y, items);
 
     useEffect(() => {
-        console.log('ContextMenu: Mounted');
         const handleClickOutside = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
-                console.log('ContextMenu: Clicking outside');
                 onClose();
             }
         };
-        // Listen for standard click to close
-        window.addEventListener('click', handleClickOutside);
-        // Also prevent default context menu if clicking inside this menu?
-        // Actually we usually want to close this menu if we right click elsewhere.
-        window.addEventListener('contextmenu', (e) => {
+
+        const handleRightClickOutside = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
                 onClose();
             }
-        });
+        };
+
+        const timer = setTimeout(() => {
+            window.addEventListener('click', handleClickOutside);
+            window.addEventListener('contextmenu', handleRightClickOutside);
+        }, 50);
 
         return () => {
+            clearTimeout(timer);
             window.removeEventListener('click', handleClickOutside);
+            window.removeEventListener('contextmenu', handleRightClickOutside);
         };
     }, [onClose]);
 
