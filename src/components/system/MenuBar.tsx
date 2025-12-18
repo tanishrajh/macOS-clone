@@ -64,7 +64,6 @@ export const MenuBar: React.FC = () => {
     );
 
     const handleSleep = () => { setAppleMenuOpen(false); setSleeping(true); };
-<<<<<<< HEAD
     const handleClickLock = () => { setAppleMenuOpen(false); setLocked(true); }; // Renamed to avoid collision with generic lock handler if any
     const handleOpenSettings = (e: React.MouseEvent) => {
         setAppleMenuOpen(false);
@@ -75,10 +74,6 @@ export const MenuBar: React.FC = () => {
             origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: rect.width, height: rect.height }
         });
     };
-=======
-    const handleClickLock = () => { setAppleMenuOpen(false); setLocked(true); };
-    const handleOpenSettings = () => { setAppleMenuOpen(false); openWindow('settings', 'System Settings', { width: 800, height: 600 }); };
->>>>>>> b3d7012 (feat: enhance control center animation and add battery menu)
 
     return (
         <div className="h-[30px] w-full bg-black/20 backdrop-blur-xl flex items-center justify-between px-2 text-[13px] font-medium text-white shadow-sm absolute top-0 z-[5000] select-none border-b border-white/5">

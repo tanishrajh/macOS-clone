@@ -75,6 +75,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     };
 
     // Calculate Origin State
+    // Calculate Origin State
     const getOriginState = () => {
         if (window.minimized && dockPos) {
             // Minimize to Dock logic
@@ -113,10 +114,13 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         };
     };
 
+    // Log intent
+
+
     return (
         <motion.div
             className={clsx(
-                "absolute flex flex-col mac-window origin-center",
+                "absolute flex flex-col mac-window origin-center top-0 left-0",
                 window.isForeground ? "z-50" : "z-0 grayscale-[0.05] opacity-95",
             )}
             initial={getOriginState()}
