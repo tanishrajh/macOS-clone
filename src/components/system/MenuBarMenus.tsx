@@ -51,12 +51,11 @@ const MENU_STRUCTURE = {
 
 export const MenuBarMenus: React.FC = () => {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
-    const { activeWindowId, closeWindow, minimizeWindow, maximizeWindow, openWindow, windows } = useWindowManager();
+    const { activeWindowId, closeWindow, minimizeWindow, maximizeWindow, openWindow, focusWindow, windows } = useWindowManager();
     const { createFolder, files } = useFileSystem();
 
     const handleAction = (action: string) => {
         setActiveMenu(null);
-        console.log(`Menu Action: ${action}`);
 
         // Basic Generic Handlers
         switch (action) {
@@ -69,6 +68,14 @@ export const MenuBarMenus: React.FC = () => {
             case 'zoom':
             case 'fullscreen':
                 if (activeWindowId) maximizeWindow(activeWindowId);
+                break;
+            case 'front':
+                if (activeWindowId) {
+                    const activeAppId = windows[activeWindowId].appId;
+                    Object.values(windows)
+                        .filter(w => w.appId === activeAppId)
+                        .forEach(w => focusWindow(w.id));
+                }
                 break;
             case 'view-icons':
                 if (activeWindowId) {
@@ -88,7 +95,7 @@ export const MenuBarMenus: React.FC = () => {
                 // Open a generic new Finder window for now
                 openWindow('finder', 'Finder', { width: 600, height: 400 });
                 break;
-            case 'new-folder':
+            case 'new-folder': {
                 if (activeWindowId && windows[activeWindowId].appId === 'finder') {
                     const meta = windows[activeWindowId].meta;
                     if (meta && meta.currentPath) {
@@ -112,6 +119,7 @@ export const MenuBarMenus: React.FC = () => {
                     }
                 }
                 break;
+            }
             case 'save':
                 window.dispatchEvent(new CustomEvent('menu-save'));
                 break;
@@ -135,14 +143,14 @@ export const MenuBarMenus: React.FC = () => {
             case 'help':
                 openWindow('safari', 'Safari', { props: { url: 'https://support.apple.com/macos' } });
                 break;
-            
+
             // Go Menu
             case 'go-back': window.dispatchEvent(new CustomEvent('menu-go-back')); break;
             case 'go-forward': window.dispatchEvent(new CustomEvent('menu-go-forward')); break;
-            
+
             case 'go-home':
             case 'go-desktop':
-            case 'go-downloads':
+            case 'go-downloads': {
                 // Resolve path
                 const allFiles = Object.values(files);
                 const root = allFiles.find(f => f.parentId === null);
@@ -165,21 +173,11 @@ export const MenuBarMenus: React.FC = () => {
                         });
                     } else {
                         // Open new window at location
-                        // We can't easily pass start path to openWindow generic config yet without modifying Finder to read it from props too.
-                        // But we CAN pass it in meta if we modify openWindow to accept meta
-                        // OR we modify Finder to look at meta on mount.
-                        // Finder looks at meta on update, but mount?
-                        // Let's rely on Finder default for now or add a quick hack to support initial meta if possible.
-                        // Actually Finder initializes to Home.
-                        // If we open new window, we can just open it.
-                        // Use openWindow then update it?
-                         openWindow('finder', 'Finder', { width: 600, height: 400 });
-                         // The new window needs time to mount.
-                         // For now, these only work if Finder is active, or generic Open Finder (Home).
-                         // Let's stick to "If active Finder, navigate. If not, Open Finder to Home (default)".
+                        openWindow('finder', 'Finder', { width: 600, height: 400 });
                     }
                 }
                 break;
+            }
             // Add more handlers as needed
         }
     };

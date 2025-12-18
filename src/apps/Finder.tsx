@@ -56,20 +56,30 @@ export const Finder: React.FC<{ windowId?: string }> = ({ windowId }) => {
         if (windowId) {
             const unsub = useWindowManager.subscribe((state) => {
                 const win = state.windows[windowId];
-                if (win && win.meta && win.meta.viewMode && win.meta.viewMode !== viewMode) {
-                    setViewMode(win.meta.viewMode);
+                if (win && win.meta) {
+                    if (win.meta.viewMode && win.meta.viewMode !== viewMode) {
+                        setViewMode(win.meta.viewMode);
+                    }
+                    if (win.meta.currentPath && win.meta.currentPath !== currentFolderId) {
+                        // We must ensure we don't create an infinite loop if navigateTo updates meta again immediately
+                        // But navigateTo updates state, which triggers the Sync OUT effect.
+                        // The Sync OUT check ensures it only updates store if changed? similar logic.
+                        // Actually, navigateTo updates `currentFolderId`. 
+                        // Wrapper check matches: if win.meta.path !== currentFolderId, then update local.
+                        navigateTo(win.meta.currentPath);
+                    }
                 }
             });
             return () => unsub();
         }
-    }, [windowId, viewMode]);
+    }, [windowId, viewMode, currentFolderId]);
 
     // Event Listeners for Menu Bar "Go" actions
     useEffect(() => {
-        const onBack = (e: CustomEvent) => {
+        const onBack = () => {
             if (useWindowManager.getState().activeWindowId === windowId) handleBack();
         };
-        const onForward = (e: CustomEvent) => {
+        const onForward = () => {
             if (useWindowManager.getState().activeWindowId === windowId) handleForward();
         };
 
@@ -86,23 +96,20 @@ export const Finder: React.FC<{ windowId?: string }> = ({ windowId }) => {
     useEffect(() => {
         // Find /Users/user
         const allFiles = Object.values(files) as FileNode[];
-        console.log("Finder: All Files", allFiles.length);
         const root = allFiles.find(f => f.parentId === null);
         if (root) {
             const home = allFiles.find(f => f.parentId === root.id && f.name === 'Users');
             if (home) {
                 const user = allFiles.find(f => f.parentId === home.id && f.name === 'user');
-                console.log("Finder: User folder found", user);
                 if (user) {
                     if (history.length === 0) {
-                        console.log("Finder: Setting current folder to user", user.id);
                         setCurrentFolderId(user.id);
                         setHistory([user.id]);
                         setHistoryIndex(0);
                     }
                 }
-            } else { console.log("Finder: Users folder missing"); }
-        } else { console.log("Finder: Root missing"); }
+            }
+        }
     }, [files]);
 
     const navigateTo = (folderId: string) => {
@@ -137,7 +144,6 @@ export const Finder: React.FC<{ windowId?: string }> = ({ windowId }) => {
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileId?: string } | null>(null);
 
     const handleContextMenu = (e: React.MouseEvent, fileId?: string) => {
-        console.log('Finder: handleContextMenu', { x: e.pageX, y: e.pageY, fileId });
         e.preventDefault();
         e.stopPropagation();
         setContextMenu({ x: e.pageX, y: e.pageY, fileId });
@@ -290,7 +296,7 @@ export const Finder: React.FC<{ windowId?: string }> = ({ windowId }) => {
                     {currentFolderId && files[currentFolderId]?.name === 'Trash' && (
                         <button
                             className="mr-4 px-3 py-1 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 rounded text-xs font-medium transition-colors"
-                            onClick={() => console.log("Empty Trash")}
+                            onClick={() => { }}
                         >
                             Empty
                         </button>

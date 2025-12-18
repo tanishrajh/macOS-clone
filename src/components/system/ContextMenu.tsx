@@ -25,7 +25,7 @@ interface ContextMenuProps {
 export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, className }) => {
     const ref = useRef<HTMLDivElement>(null);
 
-    console.log('ContextMenu: Rendering at', x, y, items);
+    if (!items || items.length === 0) return null;
 
     // Simplified closing logic: Use an invisible backdrop
     // This is more robust than window listeners in complex React trees

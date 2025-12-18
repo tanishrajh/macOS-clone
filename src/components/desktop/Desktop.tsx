@@ -54,7 +54,6 @@ export const Desktop: React.FC = () => {
     const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { windows, openWindow } = useWindowManager();
     const { isLocked } = useSystem();
-    console.log('Desktop: Windows state:', windows);
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [desktopFolderId, setDesktopFolderId] = useState<string | null>(null);
@@ -96,7 +95,6 @@ export const Desktop: React.FC = () => {
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileId?: string } | null>(null);
 
     const handleContextMenu = (e: React.MouseEvent, fileId?: string) => {
-        console.log('Desktop: handleContextMenu', { x: e.pageX, y: e.pageY, fileId });
         e.preventDefault();
         e.stopPropagation(); // Prevent bubbling to wrapper or other handlers
         setContextMenu({ x: e.pageX, y: e.pageY, fileId });
@@ -214,7 +212,7 @@ export const Desktop: React.FC = () => {
                             file={file}
                             selected={selectedIds.has(file.id)}
                             onClick={(e) => handleIconClick(e, file.id)}
-                            onDoubleClick={() => console.log('Open', file.name)}
+                            onDoubleClick={() => { }}
                             onContextMenu={(e) => {
                                 e.stopPropagation();
                                 handleContextMenu(e, file.id);
