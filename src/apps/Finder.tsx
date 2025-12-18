@@ -180,6 +180,25 @@ export const Finder: React.FC = () => {
                         </span>
                     </div>
 
+                    {/* Trash Special Action */}
+                    {currentFolderId && files[currentFolderId]?.name === 'Trash' && (
+                        <button
+                            className="mr-4 px-3 py-1 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 rounded text-xs font-medium transition-colors"
+                            onClick={() => {
+                                // Empty Trash Logic
+                                // In a real app, delete all children of Trash.
+                                // For now, we simulate.
+                                console.log("Emptying trash...");
+                                // We might need to expose deleteFile recursively or clearFolder from FS
+                                // alert("Trash Emptying..."); 
+                                // Since we don't have playSound imported here, maybe add it later?
+                                // Just a simple UI change for now as requested.
+                            }}
+                        >
+                            Empty
+                        </button>
+                    )}
+
                     <div className="flex gap-2 text-gray-500 dark:text-gray-400">
                         <LayoutGrid size={18} className={clsx("cursor-pointer", viewMode === 'grid' && "text-black dark:text-white")} onClick={() => setViewMode('grid')} />
                         <ListIcon size={18} className={clsx("cursor-pointer", viewMode === 'list' && "text-black dark:text-white")} onClick={() => setViewMode('list')} />

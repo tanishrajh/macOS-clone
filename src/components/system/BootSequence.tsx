@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
+import { REAL_STARTUP_URL } from '../../utils/sound';
+
 interface BootSequenceProps {
     onComplete: () => void;
 }
@@ -10,12 +12,9 @@ export const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
 
     useEffect(() => {
         // Play Startup Sound
-        // We use a slight delay to ensure the browser might allow it if possible, 
-        // though standard autoplay policies usually block unmuted auto-audio without interaction.
-        // In a real OS clone, we'd wait for a "Click to Start" overlay if strict, but let's try.
-        const audio = new Audio('/sounds/startup.mp3');
+        const audio = new Audio(REAL_STARTUP_URL);
         audio.volume = 0.6;
-        audio.play().catch(e => console.log("Startup sound blocked:", e));
+        audio.play().catch(e => console.log("Startup sound blocked by browser policy:", e));
 
         // Simulate boot progress
         const timer = setInterval(() => {
