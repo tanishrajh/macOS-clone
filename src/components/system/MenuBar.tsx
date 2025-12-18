@@ -55,7 +55,7 @@ export const MenuBar: React.FC = () => {
                                     initial={{ opacity: 0, scale: 0, x: -10, y: -15, filter: "blur(10px)" }}
                                     animate={{ opacity: 1, scale: 1, x: 0, y: 0, filter: "blur(0px)" }}
                                     exit={{ opacity: 0, scale: 0, x: -10, y: -15, filter: "blur(10px)" }}
-                                    transition={{ duration: 0.25, type: "spring", bounce: 0, damping: 18 }}
+                                    transition={{ duration: 0.15, type: "spring", stiffness: 300, damping: 25 }}
                                     style={{ transformOrigin: "top left" }}
                                     className="absolute top-full left-0 mt-1 w-56 mac-glass rounded-lg py-1 text-black dark:text-white z-50 shadow-2xl border border-white/20"
                                 >

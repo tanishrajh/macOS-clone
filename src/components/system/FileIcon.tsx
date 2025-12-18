@@ -8,6 +8,7 @@ interface FileIconProps {
     selected?: boolean;
     onClick?: (e: React.MouseEvent) => void;
     onDoubleClick?: (e: React.MouseEvent) => void;
+    onContextMenu?: (e: React.MouseEvent) => void;
     className?: string;
     showLabel?: boolean;
     darkLabel?: boolean;
@@ -18,6 +19,7 @@ export const FileIcon: React.FC<FileIconProps> = ({
     selected = false,
     onClick,
     onDoubleClick,
+    onContextMenu,
     className,
     showLabel = true,
     darkLabel = false
@@ -48,6 +50,7 @@ export const FileIcon: React.FC<FileIconProps> = ({
             )}
             onClick={onClick}
             onDoubleClick={onDoubleClick}
+            onContextMenu={onContextMenu}
             ref={iconRef}
         >
             <div className="w-12 h-12 mb-1 drop-shadow-lg filter">

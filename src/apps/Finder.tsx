@@ -6,6 +6,7 @@ import { Folder, FileText, Download, Monitor, ChevronRight, ChevronLeft, Search,
 import clsx from 'clsx';
 import { format } from 'date-fns';
 import { FileIcon } from '../components/system/FileIcon';
+import { ContextMenu } from '../components/system/ContextMenu';
 import type { FileNode } from '../types/filesystem';
 
 const ApplicationIcon = () => <div className="w-4 h-4 bg-transparent border border-gray-400 rounded-sm flex items-center justify-center text-[8px] font-bold">A</div>;
@@ -85,6 +86,42 @@ export const Finder: React.FC = () => {
             const newIndex = historyIndex + 1;
             setHistoryIndex(newIndex);
             setCurrentFolderId(history[newIndex]);
+        }
+    };
+
+    // Context Menu State
+    const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileId?: string } | null>(null);
+
+    const handleContextMenu = (e: React.MouseEvent, fileId?: string) => {
+        e.preventDefault();
+        setContextMenu({ x: e.pageX, y: e.pageY, fileId });
+    };
+
+    const getContextMenuItems = () => {
+        if (contextMenu?.fileId) {
+            const file = files[contextMenu.fileId];
+            return [
+                {
+                    label: 'Open', action: () => {
+                        if (file.type === 'folder') navigateTo(file.id);
+                        // Add logic for opening files if needed, but double click covers it mostly
+                    }
+                },
+                { label: 'Get Info', action: () => console.log("Get Info", file.name) },
+                { separator: true },
+                { label: 'Rename', action: () => console.log("Rename", file.name) },
+                { separator: true },
+                { label: 'Move to Trash', danger: true, action: () => console.log("Trash", file.name) },
+            ];
+        } else {
+            // Background options
+            return [
+                { label: 'New Folder', action: () => console.log("New Folder") },
+                { label: 'Get Info', action: () => console.log("Get Info Folder") },
+                { separator: true },
+                { label: 'View as List', action: () => setViewMode('list') },
+                { label: 'View as Grid', action: () => setViewMode('grid') },
+            ];
         }
     };
 
@@ -224,7 +261,17 @@ export const Finder: React.FC = () => {
                                         }
                                     }
                                 }}>
-                                    <FileIcon file={file} selected={false} onClick={() => { }} showLabel={true} darkLabel />
+                                    <FileIcon
+                                        file={file}
+                                        selected={false}
+                                        onClick={() => { }}
+                                        showLabel={true}
+                                        darkLabel
+                                        onContextMenu={(e) => {
+                                            e.stopPropagation();
+                                            handleContextMenu(e, file.id);
+                                        }}
+                                    />
                                 </div>
                             ))}
                         </div>
@@ -260,6 +307,16 @@ export const Finder: React.FC = () => {
                     {currentFiles.length} items
                 </div>
             </div>
+
+            {/* Context Menu Render */}
+            {contextMenu && (
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={getContextMenuItems()}
+                    onClose={() => setContextMenu(null)}
+                />
+            )}
         </div>
     );
 };

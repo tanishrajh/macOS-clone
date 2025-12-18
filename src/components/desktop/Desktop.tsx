@@ -4,6 +4,7 @@ import { useSettings } from '../../store/settings';
 import { useWindowManager } from '../../store/window-manager';
 import { FileIcon } from '../system/FileIcon';
 import { WindowFrame } from '../system/WindowFrame';
+import { ContextMenu } from '../system/ContextMenu';
 
 // Apps
 // Apps - Lazy Load for Performance
@@ -50,7 +51,7 @@ import { useSystem } from '../../store/system';
 export const Desktop: React.FC = () => {
     const { wallpaper } = useSettings();
     const { files, getChildren } = useFileSystem();
-    const { windows } = useWindowManager();
+    const { windows, openWindow } = useWindowManager();
     const { isLocked } = useSystem();
     console.log('Desktop: Windows state:', windows);
 
@@ -90,11 +91,51 @@ export const Desktop: React.FC = () => {
         setSelectedIds(new Set());
     };
 
+    // Context Menu State
+    const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileId?: string } | null>(null);
+
+    const handleContextMenu = (e: React.MouseEvent, fileId?: string) => {
+        e.preventDefault();
+        setContextMenu({ x: e.pageX, y: e.pageY, fileId });
+    };
+
+    const getContextMenuItems = () => {
+        if (contextMenu?.fileId) {
+            // File Context Menu
+            const file = files[contextMenu.fileId];
+            return [
+                { label: 'Open', action: () => console.log("Open", file.name) }, // TODO: Actual Open
+                { label: 'Get Info', action: () => console.log("Get Info", file.name) },
+                { separator: true },
+                { label: 'Rename', action: () => console.log("Rename", file.name) },
+                { label: 'Compress', action: () => console.log("Compress", file.name) },
+                { separator: true },
+                { label: 'Move to Trash', danger: true, action: () => console.log("Trash", file.name) }, // useFileSystem delete
+            ];
+        } else {
+            // Background Context Menu
+            return [
+                { label: 'New Folder', action: () => console.log("New Folder") },
+                { label: 'Get Info', action: () => console.log("Get Info Desktop") },
+                { separator: true },
+                { label: 'Change Wallpaper...', action: () => openWindow('settings', 'System Settings') },
+                { separator: true },
+                { label: 'Sort By', submenu: [] },
+                { label: 'Clean Up', action: () => console.log("Clean Up") },
+            ];
+        }
+    };
+
+    // Import ContextMenu (assuming it is available from previous step)
+    // Note: We need to import it at the top, I'll add the import in a separate tool call if needed or just assume. 
+    // Wait, adding imports with replace_file_content at the top is safer.
+
     return (
         <motion.div
             className="absolute inset-0 z-0 bg-cover bg-center overflow-hidden"
             style={{ backgroundImage: wallpaper.includes('gradient') ? wallpaper : `url(${wallpaper})` }}
             onClick={handleBackgroundClick}
+            onContextMenu={(e) => handleContextMenu(e)}
             initial={{ scale: 1.2, filter: 'blur(10px)' }}
             animate={{
                 scale: isLocked ? 1.1 : 1,
@@ -113,10 +154,24 @@ export const Desktop: React.FC = () => {
                             selected={selectedIds.has(file.id)}
                             onClick={(e) => handleIconClick(e, file.id)}
                             onDoubleClick={() => console.log('Open', file.name)}
+                            onContextMenu={(e) => {
+                                e.stopPropagation();
+                                handleContextMenu(e, file.id);
+                            }}
                         />
                     </div>
                 ))}
             </div>
+
+            {/* Context Menu Render */}
+            {contextMenu && (
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={getContextMenuItems()}
+                    onClose={() => setContextMenu(null)}
+                />
+            )}
 
             {/* Windows Layer */}
             {Object.values(windows).map((window) => {
