@@ -14,6 +14,7 @@ interface WindowStore {
     focusWindow: (id: string, minimizeToggle?: boolean) => void;
     moveWindow: (id: string, x: number, y: number) => void;
     resizeWindow: (id: string, width: number, height: number) => void;
+    updateWindow: (id: string, updates: Partial<WindowState>) => void;
     setDockItemPos: (appId: string, rect: { x: number; y: number }) => void;
 
     isLaunchpadOpen: boolean;
@@ -149,6 +150,15 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
                 activeWindowId: null // Clear focus logic?
             };
         });
+    },
+
+    updateWindow: (id, updates) => {
+        set(state => ({
+            windows: {
+                ...state.windows,
+                [id]: { ...state.windows[id], ...updates }
+            }
+        }));
     },
 
     maximizeWindow: (id) => {

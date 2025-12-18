@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useFileSystem } from '../store/filesystem';
+import { useWindowManager } from '../store/window-manager';
 import { Save, FileText } from 'lucide-react';
 
-export const TextEdit: React.FC = () => {
+export const TextEdit: React.FC<{ windowId?: string }> = ({ windowId }) => {
     const { files, createFile } = useFileSystem();
+    const { activeWindowId } = useWindowManager();
     const [content, setContent] = useState('');
     const [fileName, setFileName] = useState('Untitled.txt');
     const [docFolderId, setDocFolderId] = useState<string | null>(null);
@@ -28,6 +30,17 @@ export const TextEdit: React.FC = () => {
         createFile(docFolderId, fileName, 'file', content);
         alert('File saved to Documents!');
     };
+
+    // Menu Bar Save Listener
+    useEffect(() => {
+        const onSave = () => {
+            if (activeWindowId && activeWindowId === windowId) {
+                handleSave();
+            }
+        };
+        window.addEventListener('menu-save', onSave);
+        return () => window.removeEventListener('menu-save', onSave);
+    }, [activeWindowId, windowId, docFolderId, fileName, content]);
 
     return (
         <div className="flex flex-col w-full h-full bg-white dark:bg-[#1e1e1e] text-black dark:text-gray-200 font-sans transition-colors duration-300">

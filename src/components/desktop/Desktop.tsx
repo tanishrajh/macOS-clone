@@ -298,7 +298,7 @@ export const Desktop: React.FC = () => {
                 return (
                     <WindowFrame key={window.id} window={window}>
                         <Suspense fallback={<div className="flex w-full h-full items-center justify-center bg-white/50 dark:bg-[#1c1c1c]/50"><span className="animate-spin h-5 w-5 border-2 border-gray-500 border-t-transparent rounded-full" /></div>}>
-                            <Component {...window.props} />
+                            <Component windowId={window.id} {...window.props} />
                         </Suspense>
                     </WindowFrame>
                 );

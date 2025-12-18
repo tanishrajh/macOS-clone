@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useWindowManager } from '../../store/window-manager';
+import { useFileSystem } from '../../store/filesystem';
 
 const MENU_STRUCTURE = {
     File: [
@@ -9,6 +10,9 @@ const MENU_STRUCTURE = {
         { label: 'New Folder', action: 'new-folder' },
         { divider: true },
         { label: 'Close Window', action: 'close-window' },
+        { divider: true },
+        { label: 'Save', action: 'save' },
+        { label: 'Print', action: 'print' },
     ],
     Edit: [
         { label: 'Undo', action: 'undo' },
@@ -47,7 +51,8 @@ const MENU_STRUCTURE = {
 
 export const MenuBarMenus: React.FC = () => {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
-    const { activeWindowId, closeWindow, minimizeWindow, maximizeWindow, openWindow } = useWindowManager();
+    const { activeWindowId, closeWindow, minimizeWindow, maximizeWindow, openWindow, windows } = useWindowManager();
+    const { createFolder, files } = useFileSystem();
 
     const handleAction = (action: string) => {
         setActiveMenu(null);
@@ -68,6 +73,36 @@ export const MenuBarMenus: React.FC = () => {
             case 'new-window':
                 // Open a generic new Finder window for now
                 openWindow('finder', 'Finder', { width: 600, height: 400 });
+                break;
+            case 'new-folder':
+                if (activeWindowId && windows[activeWindowId].appId === 'finder') {
+                    const meta = windows[activeWindowId].meta;
+                    if (meta && meta.currentPath) {
+                        createFolder(meta.currentPath, 'New Folder');
+                        return;
+                    }
+                }
+
+                // Fallback: Try to find Desktop folder
+                // We use a robust search strategy
+                const allFiles = Object.values(files);
+                const root = allFiles.find(f => f.parentId === null);
+                if (root) {
+                    const users = allFiles.find(f => f.parentId === root.id && f.name === 'Users');
+                    if (users) {
+                        const user = allFiles.find(f => f.parentId === users.id && f.name === 'user');
+                        if (user) {
+                            const desktop = allFiles.find(f => f.parentId === user.id && f.name === 'Desktop');
+                            if (desktop) createFolder(desktop.id, 'New Folder');
+                        }
+                    }
+                }
+                break;
+            case 'save':
+                window.dispatchEvent(new CustomEvent('menu-save'));
+                break;
+            case 'print':
+                window.print();
                 break;
             case 'help':
                 openWindow('safari', 'Safari', { props: { url: 'https://support.apple.com/macos' } });

@@ -29,7 +29,7 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
     </div>
 );
 
-export const Finder: React.FC = () => {
+export const Finder: React.FC<{ windowId?: string }> = ({ windowId }) => {
     const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { openWindow } = useWindowManager();
     const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -38,6 +38,15 @@ export const Finder: React.FC = () => {
     // Navigation History
     const [history, setHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
+
+    // Sync Window Meta for Menu Bar context
+    useEffect(() => {
+        if (windowId && currentFolderId) {
+            useWindowManager.getState().updateWindow(windowId, {
+                meta: { currentPath: currentFolderId }
+            });
+        }
+    }, [windowId, currentFolderId]);
 
     // Initialize to user Home on mount
     useEffect(() => {
