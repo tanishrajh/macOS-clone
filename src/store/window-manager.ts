@@ -134,12 +134,13 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
             newOrder.push(id);
 
             // Re-assign Z-indexes strictly? Or just use order?
-            // Using order array is better for rendering mapping.
+            // Since framer motion uses window.zIndex directly, we MUST update it.
+            const maxZIndex = Math.max(...Object.values(state.windows).map(w => w.zIndex || 0), 10);
 
             return {
                 windows: {
                     ...state.windows,
-                    [id]: { ...window, minimized: false }
+                    [id]: { ...window, minimized: false, zIndex: maxZIndex + 1 }
                 },
                 windowOrder: newOrder,
                 activeWindowId: id,
