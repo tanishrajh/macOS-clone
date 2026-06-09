@@ -190,7 +190,10 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     // Icons are anchored to their respective window's position, so they stack diagonally too
     const iconX = targetLeft - 5;
     const iconY = targetTop + (window.height * scale) - 25;
-    const iconZIndex = window.zIndex + 1;
+    
+    // Reverse Z-index for overflow apps so they stack ON TOP of the front app
+    const visualZIndex = isActuallyInStrip ? window.zIndex + (overflowIndex * 100) : window.zIndex;
+    const iconZIndex = visualZIndex + 1;
 
     return (
         <>
@@ -207,7 +210,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
             }
             style={{
-                zIndex: window.zIndex,
+                zIndex: visualZIndex,
                 pointerEvents: window.minimized ? 'none' : 'auto',
                 boxShadow: window.isForeground ? 'var(--window-shadow-active)' : 'var(--window-shadow-inactive)',
                 transformPerspective: 2000,
