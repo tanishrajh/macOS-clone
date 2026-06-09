@@ -6,24 +6,27 @@
   --system-bg: #000000;
 
   /* Premium macOS Glass System */
-  --glass-border-light: 1px solid rgba(255, 255, 255, 0.4);
-  --glass-border-dark: 1px solid rgba(255, 255, 255, 0.1);
+  --glass-bg-light: rgba(255, 255, 255, 0.5);
+  --glass-bg-dark: rgba(30, 30, 30, 0.45);
 
-  --glass-bg-light: rgba(255, 255, 255, 0.65);
-  --glass-bg-dark: rgba(30, 30, 30, 0.60);
-
-  --window-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  --window-shadow-active: 0 30px 60px rgba(0, 0, 0, 0.3);
+  --window-shadow-inactive: 0 10px 30px rgba(0, 0, 0, 0.15);
+  
+  --system-border-light: inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.1);
+  --system-border-dark: inset 0 1px 1px rgba(255,255,255,0.15), inset 0 -1px 1px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.3);
 }
 
 .dark {
-  --window-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --window-shadow-active: 0 30px 60px rgba(0, 0, 0, 0.6);
+  --window-shadow-inactive: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", sans-serif;
+  letter-spacing: -0.01em;
   user-select: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -32,28 +35,46 @@ body {
 /* Global Glass Class - Applied to Windows, Menus, Dock, Sidebar */
 .mac-glass {
   background: var(--glass-bg-light);
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border: var(--glass-border-light);
-  box-shadow: var(--window-shadow);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: var(--system-border-light);
 }
 
 .dark .mac-glass {
   background: var(--glass-bg-dark);
-  border: var(--glass-border-dark);
+  box-shadow: var(--system-border-dark);
   color: #fff;
+}
+
+/* Material Variations */
+.mac-material-thick {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(50px) saturate(200%);
+  -webkit-backdrop-filter: blur(50px) saturate(200%);
+}
+.dark .mac-material-thick {
+  background: rgba(30, 30, 30, 0.75);
+}
+
+.mac-material-thin {
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+.dark .mac-material-thin {
+  background: rgba(30, 30, 30, 0.35);
 }
 
 /* Dock Specific Glass */
 .glass-dock {
   @apply mac-glass;
   border-radius: 24px;
-  /* Consistent corner radius */
 }
 
 /* Specific Window Chrome */
 .mac-window {
-  @apply mac-glass rounded-xl overflow-hidden transition-all duration-200 ease-out;
+  @apply mac-glass overflow-hidden;
+  border-radius: 14px;
 }
 
 .mac-titlebar {

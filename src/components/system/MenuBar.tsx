@@ -76,7 +76,7 @@ export const MenuBar: React.FC = () => {
     };
 
     return (
-        <div className="h-[30px] w-full bg-black/20 backdrop-blur-xl flex items-center justify-between px-2 text-[13px] font-medium text-white shadow-sm absolute top-0 z-[5000] select-none border-b border-white/5">
+        <div className="h-[28px] w-full bg-black/20 backdrop-blur-xl flex items-center justify-between px-2 text-[13px] font-medium text-white shadow-sm absolute top-0 z-[5000] select-none border-b border-white/5">
             <div className="flex items-center gap-0.5 relative">
                 <div
                     className={clsx("flex items-center justify-center hover:bg-white/10 px-3 py-0.5 rounded cursor-default transition-colors relative", appleMenuOpen && "bg-white/10")}
@@ -98,29 +98,29 @@ export const MenuBar: React.FC = () => {
                                     style={{ transformOrigin: "top left" }}
                                     className="absolute top-full left-0 mt-1 w-56 mac-glass rounded-lg py-1 text-black dark:text-white z-50 shadow-2xl border border-white/20"
                                 >
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowAbout(true); }}>About This Mac</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowAbout(true); }}>About This Mac</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={(e) => handleOpenSettings(e)}>System Settings...</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={(e) => {
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={(e) => handleOpenSettings(e)}>System Settings...</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={(e) => {
                                         setAppleMenuOpen(false);
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         openWindow('appstore', 'App Store', { origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: rect.width, height: rect.height } });
                                     }}>App Store...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default opacity-50">Recent Items</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default opacity-50">Recent Items</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={(e) => {
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={(e) => {
                                         setAppleMenuOpen(false);
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         openWindow('activity', 'Activity Monitor', { origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: rect.width, height: rect.height } });
                                     }}>Force Quit...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={handleSleep}>Sleep</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowRestart(true); }}>Restart...</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowShutdown(true); }}>Shut Down...</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={handleSleep}>Sleep</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowRestart(true); }}>Restart...</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowShutdown(true); }}>Shut Down...</div>
                                     <div className="h-px bg-gray-300/50 my-1 mx-3" />
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); handleClickLock(); }}>Lock Screen</div>
-                                    <div className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowLogout(true); }}>Log Out User...</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); handleClickLock(); }}>Lock Screen</div>
+                                    <div className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default" onClick={() => { setAppleMenuOpen(false); setShowLogout(true); }}>Log Out User...</div>
                                 </motion.div>
                             </>
                         )}
@@ -222,7 +222,7 @@ export const MenuBar: React.FC = () => {
                                         </div>
                                         <div className="py-1">
                                             <div
-                                                className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default text-sm flex items-center gap-2"
+                                                className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default text-sm flex items-center gap-2"
                                                 onClick={() => { setBatteryMenuOpen(false); openWindow('settings', 'System Settings'); }}
                                             >
                                                 Battery Settings...
@@ -254,21 +254,8 @@ export const MenuBar: React.FC = () => {
                             <circle cx="8" cy="10" r="1.5" />
                             <circle cx="16" cy="14" r="1.5" />
                         </svg>
-                        <AnimatePresence>
-                            {controlCenterOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.1, x: 0, y: -20, filter: "blur(12px)" }}
-                                    animate={{ opacity: 1, scale: 1, x: 0, y: 0, filter: "blur(0px)" }}
-                                    exit={{ opacity: 0, scale: 0.1, x: 0, y: -10, filter: "blur(12px)" }}
-                                    transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                                    style={{ transformOrigin: "calc(100% - 14px) -12px" }}
-                                    className="absolute top-8 right-0 z-[5001]"
-                                >
-                                    <ControlCenter isOpen={true} onClose={() => setControlCenterOpen(false)} />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </div>
+                    <ControlCenter isOpen={controlCenterOpen} onClose={() => setControlCenterOpen(false)} />
 
                     <div
                         className={clsx("relative cursor-default min-w-[130px] text-right font-medium hover:bg-white/10 px-2 py-0.5 rounded transition-colors", calendarOpen && "bg-white/10")}

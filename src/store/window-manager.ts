@@ -12,6 +12,7 @@ interface WindowStore {
     minimizeWindow: (id: string) => void;
     maximizeWindow: (id: string) => void;
     focusWindow: (id: string, minimizeToggle?: boolean) => void;
+    clearFocus: () => void;
     moveWindow: (id: string, x: number, y: number) => void;
     resizeWindow: (id: string, width: number, height: number) => void;
     updateWindow: (id: string, updates: Partial<WindowState>) => void;
@@ -138,6 +139,10 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
                 activeWindowId: id
             };
         });
+    },
+
+    clearFocus: () => {
+        set({ activeWindowId: null });
     },
 
     minimizeWindow: (id) => {

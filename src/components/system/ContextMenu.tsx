@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Check } from 'lucide-react';
 
 export interface ContextMenuItem {
     label?: string;
@@ -11,6 +11,7 @@ export interface ContextMenuItem {
     separator?: boolean;
     danger?: boolean;
     icon?: React.FC<any>;
+    checked?: boolean;
     submenu?: ContextMenuItem[];
 }
 
@@ -56,7 +57,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, 
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.1 }}
                 style={style}
-                className={clsx("fixed z-[99999] min-w-[200px] bg-white/60 dark:bg-[#2c2c2e]/60 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-lg shadow-2xl py-1.5 flex flex-col text-[13px] font-medium text-black dark:text-white select-none", className)}
+                className={clsx("fixed z-[99999] min-w-[200px] mac-material-thick border border-black/10 dark:border-white/10 rounded-[8px] shadow-2xl py-1 flex flex-col text-[13px] font-medium text-black dark:text-white select-none", className)}
                 onContextMenu={(e) => e.preventDefault()}
             >
                 {items.map((item, index) => {
@@ -68,10 +69,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, 
                         <div
                             key={index}
                             className={clsx(
-                                "px-3 py-1 mx-1.5 rounded flex items-center justify-between cursor-default transition-colors",
+                                "px-3 py-1 mx-1 rounded-[4px] flex items-center justify-between cursor-default transition-colors",
                                 item.disabled
                                     ? "opacity-50 cursor-not-allowed"
-                                    : "hover:bg-blue-500 hover:text-white",
+                                    : "hover:bg-[#0058D0] hover:text-white",
                                 item.danger && !item.disabled && "text-red-500 hover:text-white"
                             )}
                             onClick={() => {
@@ -82,7 +83,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose, 
                             }}
                         >
                             <div className="flex items-center gap-2">
-                                {item.icon && <item.icon size={14} />}
+                                {item.checked ? <Check size={14} /> : (item.icon ? <item.icon size={14} /> : <div className="w-[14px]" />)}
                                 <span>{item.label}</span>
                             </div>
                             {item.submenu && <ChevronRight size={12} />}

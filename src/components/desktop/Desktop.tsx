@@ -6,6 +6,15 @@ import { FileIcon } from '../system/FileIcon';
 import { WindowFrame } from '../system/WindowFrame';
 import { ContextMenu } from '../system/ContextMenu';
 import { Dialog } from '../system/Dialog';
+import { WidgetContainer, ClockWidget, WeatherWidget, CalendarWidget, BatteryWidget, NotesWidget } from './widgets';
+
+const WIDGET_COMPONENTS: Record<string, React.FC> = {
+    'clock': ClockWidget,
+    'weather': WeatherWidget,
+    'calendar': CalendarWidget,
+    'battery': BatteryWidget,
+    'notes': NotesWidget
+};
 
 // Apps
 // Apps - Lazy Load for Performance
@@ -46,11 +55,11 @@ const APP_COMPONENTS: Record<string, React.FC> = {
     'preview': Preview,
 };
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSystem } from '../../store/system';
 
 export const Desktop: React.FC = () => {
-    const { wallpaper } = useSettings();
+    const { wallpaper, widgets, stageManager, toggleStageManager } = useSettings();
     const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { windows, openWindow } = useWindowManager();
     const { isLocked } = useSystem();
@@ -89,15 +98,35 @@ export const Desktop: React.FC = () => {
 
     const handleBackgroundClick = () => {
         setSelectedIds(new Set());
+        if (stageManager) {
+            useWindowManager.getState().clearFocus();
+        }
     };
 
+    // ESC shortcut for Stage Manager
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                toggleStageManager();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [toggleStageManager]);
+
     // Context Menu State
-    const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileId?: string } | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ x: number, y: number, fileId?: string, widgetId?: string } | null>(null);
 
     const handleContextMenu = (e: React.MouseEvent, fileId?: string) => {
         e.preventDefault();
         e.stopPropagation(); // Prevent bubbling to wrapper or other handlers
         setContextMenu({ x: e.pageX, y: e.pageY, fileId });
+    };
+
+    const handleWidgetContextMenu = (e: React.MouseEvent, widgetId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setContextMenu({ x: e.pageX, y: e.pageY, widgetId });
     };
 
     // Dialog States
@@ -152,6 +181,18 @@ export const Desktop: React.FC = () => {
                     action: () => setDeleteId(file.id)
                 },
             ];
+        } else if (contextMenu?.widgetId) {
+            const widget = widgets?.find(w => w.id === contextMenu.widgetId);
+            if (!widget) return [];
+            return [
+                { label: 'Edit Widgets...', action: () => openWindow('settings') },
+                { separator: true },
+                { label: 'Small', checked: widget.size === 'small', action: () => useSettings.getState().updateWidgetSize(widget.id, 'small') },
+                { label: 'Medium', checked: widget.size === 'medium', action: () => useSettings.getState().updateWidgetSize(widget.id, 'medium') },
+                { label: 'Large', checked: widget.size === 'large', action: () => useSettings.getState().updateWidgetSize(widget.id, 'large') },
+                { separator: true },
+                { label: 'Remove Widget', danger: true, action: () => useSettings.getState().removeWidget(widget.id) },
+            ];
         } else {
             // Background Context Menu
             return [
@@ -173,7 +214,8 @@ export const Desktop: React.FC = () => {
                     })
                 },
                 { separator: true },
-                { label: 'Change Wallpaper...', action: () => openWindow('settings', 'System Settings') },
+                { label: 'Edit Widgets...', action: () => openWindow('settings') },
+                { label: 'Change Wallpaper...', action: () => openWindow('settings') },
                 { separator: true },
                 { label: 'Clean Up', action: () => setSelectedIds(new Set()) },
             ];
@@ -221,6 +263,26 @@ export const Desktop: React.FC = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Desktop Widgets */}
+            <AnimatePresence>
+                {!stageManager && widgets?.map((widget) => {
+                    const WidgetComponent = WIDGET_COMPONENTS[widget.type];
+                    if (!WidgetComponent) return null;
+                    return (
+                        <WidgetContainer 
+                            key={widget.id} 
+                            id={widget.id} 
+                            initialX={widget.x} 
+                            initialY={widget.y} 
+                            size={widget.size}
+                            onContextMenu={(e) => handleWidgetContextMenu(e, widget.id)}
+                        >
+                            <WidgetComponent size={widget.size} />
+                        </WidgetContainer>
+                    );
+                })}
+            </AnimatePresence>
 
             {/* Context Menu Render */}
             {contextMenu && (

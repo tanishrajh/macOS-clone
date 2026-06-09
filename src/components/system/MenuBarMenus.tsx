@@ -215,7 +215,7 @@ export const MenuBarMenus: React.FC = () => {
                                         return (
                                             <div
                                                 key={idx}
-                                                className="px-4 py-1 hover:bg-blue-500 hover:text-white cursor-default text-sm"
+                                                className="px-3 py-1 mx-1 rounded-[4px] hover:bg-[#0058D0] hover:text-white cursor-default text-sm"
                                                 onClick={() => handleAction(item.action!)}
                                             >
                                                 {item.label}

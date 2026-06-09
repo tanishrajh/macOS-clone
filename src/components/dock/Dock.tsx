@@ -4,7 +4,7 @@ import { useWindowManager } from '../../store/window-manager';
 import { Folder, LayoutGrid, Globe, MessageSquare, Image, Music, Calendar, Terminal, Settings, FileText, CheckSquare, ShoppingBag, Mic, Trash2, Cpu } from 'lucide-react';
 import clsx from 'clsx';
 
-const DOCK_APPS = [
+export const DOCK_APPS = [
     { id: 'finder', name: 'Finder', icon: Folder, color: 'bg-gradient-to-b from-blue-400 to-blue-600', running: true },
     { id: 'launchpad', name: 'Launchpad', icon: LayoutGrid, color: 'bg-gradient-to-b from-gray-400 to-gray-600', running: false },
     { id: 'safari', name: 'Safari', icon: Globe, color: 'bg-white text-blue-500', running: false },
@@ -28,7 +28,7 @@ import { playSound } from '../../utils/sound';
 export const Dock: React.FC = () => {
     const mouseX = useMotionValue<number | null>(null);
     const { openWindow, windows } = useWindowManager();
-    const { dockSize } = useSettings();
+    const { dockSize, dockMagnification } = useSettings();
     const [isHovering, setIsHovering] = React.useState(false);
 
     const isAnyMaximized = Object.values(windows).some(w => w.maximized && !w.minimized);
@@ -57,7 +57,8 @@ export const Dock: React.FC = () => {
                 onMouseLeave={() => setIsHovering(false)}
             >
                 <div
-                    className="glass-dock flex items-end gap-3 px-3 pb-3 pt-2 rounded-[24px]"
+                    className="glass-dock flex items-end gap-2 px-3 rounded-[24px]"
+                    style={{ height: dockSize + 16 }}
                     onMouseMove={(e) => mouseX.set(e.pageX)}
                     onMouseLeave={() => mouseX.set(null)}
                 >
@@ -68,6 +69,7 @@ export const Dock: React.FC = () => {
                             app={app}
                             running={isRunning(app.id)}
                             dockSize={dockSize}
+                            magnification={dockMagnification}
                             onClick={() => {
                                 playSound('click');
                                 if (app.id === 'launchpad') {
@@ -84,12 +86,13 @@ export const Dock: React.FC = () => {
                             }}
                         />
                     ))}
-                    <div className="w-[1px] h-10 bg-white/20 mx-1 mb-2"></div>
+                    <div className="w-[1px] bg-white/20 mx-1" style={{ height: dockSize, marginBottom: 8 }}></div>
                     <DockIcon
                         mouseX={mouseX}
                         app={{ id: 'trash', name: 'Trash', icon: Trash2, color: 'bg-gradient-to-b from-gray-500 to-gray-700' }}
                         running={false}
                         dockSize={dockSize}
+                        magnification={dockMagnification}
                         onClick={() => {
                             playSound('trash');
                             // Open Trash (Finder with trash path - simplified as generic Finder for now)
@@ -102,13 +105,9 @@ export const Dock: React.FC = () => {
     );
 };
 
-const DockIcon = ({ mouseX, app, running, dockSize, onClick }: { mouseX: any, app: any, running: boolean, dockSize: number, onClick: () => void }) => {
+const DockIcon = ({ mouseX, app, running, dockSize, magnification, onClick }: { mouseX: any, app: any, running: boolean, dockSize: number, magnification: boolean, onClick: () => void }) => {
     const ref = useRef<HTMLDivElement>(null);
     const { setDockItemPos } = useWindowManager();
-
-    // Report Position using resize observer or similar if dynamic size changes?
-    // Actually existing window resize event might not catch dock size changes immediately for pos reporting...
-    // But it's okay for now.
 
     // Report Position
     React.useEffect(() => {
@@ -121,8 +120,6 @@ const DockIcon = ({ mouseX, app, running, dockSize, onClick }: { mouseX: any, ap
 
         updatePos();
         window.addEventListener('resize', updatePos);
-        // Also update when dockSize changes
-        // Using a small timeout to let transition settle
         const t = setTimeout(updatePos, 300);
         return () => {
             window.removeEventListener('resize', updatePos);
@@ -141,20 +138,25 @@ const DockIcon = ({ mouseX, app, running, dockSize, onClick }: { mouseX: any, ap
         damping: 12,
     });
 
-    const width = useTransform(widthSync, (val) => val < dockSize ? dockSize : val);
+    // Use magnified width ONLY if magnification is enabled
+    const width = useTransform(widthSync, (val) => {
+        if (!magnification) return dockSize;
+        return val < dockSize ? dockSize : val;
+    });
 
     return (
-        <div className="flex flex-col items-center gap-1 group">
+        <div className="flex flex-col items-center justify-end relative group h-full">
             {/* Tooltip */}
-            <div className="absolute -top-12 px-3 py-1 bg-[#1a1a1a]/80 backdrop-blur text-white text-xs rounded-md 
-                opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 shadow-lg">
+            <div className="absolute -top-12 px-3 py-1 bg-[#1e1e1e]/90 backdrop-blur-xl text-[#f0f0f0] text-[13px] tracking-wide rounded-[8px] 
+                opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-500 pointer-events-none border border-white/10 shadow-lg whitespace-nowrap z-[10000]">
                 {app.name}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-[#1e1e1e]/90"></div>
             </div>
 
             <motion.div
                 ref={ref}
                 style={{ width, height: width }}
-                className="aspect-square rounded-2xl flex items-center justify-center mb-1 cursor-pointer relative"
+                className="aspect-square rounded-2xl flex items-center justify-center cursor-pointer relative mb-[8px]"
                 onClick={onClick}
                 whileTap={{ scale: 0.85 }}
             >
@@ -164,7 +166,7 @@ const DockIcon = ({ mouseX, app, running, dockSize, onClick }: { mouseX: any, ap
                 </div>
             </motion.div>
 
-            <div className={clsx("w-1 h-1 rounded-full bg-white transition-opacity", running ? "opacity-100" : "opacity-0")} />
+            <div className={clsx("absolute bottom-[3px] w-1 h-1 rounded-full bg-white/80 transition-opacity", running ? "opacity-100" : "opacity-0")} />
         </div>
     );
 };

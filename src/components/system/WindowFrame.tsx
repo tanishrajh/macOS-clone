@@ -1,9 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { X, Minus, Maximize2 } from 'lucide-react';
 import { useWindowManager } from '../../store/window-manager';
+import { useSettings } from '../../store/settings';
 import type { WindowState } from '../../types/window';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
+import { DOCK_APPS } from '../dock/Dock';
 
 interface WindowFrameProps {
     window: WindowState;
@@ -11,7 +13,8 @@ interface WindowFrameProps {
 }
 
 export const WindowFrame = ({ window, children }: WindowFrameProps) => {
-    const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow, dockItems } = useWindowManager();
+    const { windows, activeWindowId, closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow, dockItems } = useWindowManager();
+    const { stageManager } = useSettings();
     const [isDragging, setIsDragging] = useState(false);
     const dragOffset = useRef({ x: 0, y: 0 });
 
@@ -59,10 +62,31 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         }
     }, [isDragging, window.id, moveWindow]);
 
-    // Animation Variants
-    // We determine the "origin" rect based on:
-    // 1. window.origin (if Just Opened or explicit source)
-    // 2. dockItems[window.appId] (if minimizing/restoring)
+    // Stage Manager Logic
+    const activeWindow = activeWindowId ? windows[activeWindowId] : null;
+    const stageActiveAppId = activeWindow?.appId || null;
+
+    const isInStage = !stageManager || stageActiveAppId === window.appId;
+    const isInStrip = stageManager && stageActiveAppId !== window.appId && !window.minimized;
+
+    // Calculate strip position if in strip
+    const allBackgroundApps = Object.values(windows)
+        .filter(w => w.appId !== stageActiveAppId && !w.minimized)
+        .sort((a, b) => b.zIndex - a.zIndex) // highest zIndex first (most recent)
+        .map(w => w.appId)
+        .filter((v, i, a) => a.indexOf(v) === i);
+
+    const stripAppIds = allBackgroundApps.slice(0, 5); // Max 5 apps in strip
+    
+    // Re-evaluate isInStrip based on the limit
+    const isActuallyInStrip = isInStrip && stripAppIds.includes(window.appId);
+    const isHiddenByStageManager = stageManager && !isInStage && !isActuallyInStrip && !window.minimized;
+
+    const slotIndex = Math.max(0, stripAppIds.indexOf(window.appId));
+
+    // Calculate stack offset for multiple windows of same app
+    const windowsOfThisApp = Object.values(windows).filter(w => w.appId === window.appId && !w.minimized);
+    const appWindowIndex = Math.max(0, windowsOfThisApp.findIndex(w => w.id === window.id));
 
     // Default Animation State (Normal Window)
     const normalState = {
@@ -72,24 +96,53 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         y: window.maximized ? 30 : window.y,
         width: window.maximized ? '100%' : window.width,
         height: window.maximized ? 'calc(100% - 30px)' : window.height,
+        rotateY: 0,
+        rotateX: 0,
+        originX: 0.5,
+        originY: 0.5,
+    };
+
+    // Strip State (Stage Manager)
+    const availableHeight = typeof globalThis.window !== 'undefined' ? globalThis.window.innerHeight - 150 : 800;
+    const totalSlots = Math.max(1, stripAppIds.length);
+    const slotSpacing = Math.min(180, availableHeight / totalSlots);
+
+    const scale = 0.22;
+    const targetLeft = 10 + (appWindowIndex * 20);
+    const targetTop = 80 + (slotIndex * slotSpacing) + (appWindowIndex * 20);
+
+    const stripY = targetTop - (window.height / 2 * (1 - scale));
+
+    const stripState = {
+        opacity: 1,
+        scale,
+        x: targetLeft, // Scale happens from left edge, so x is just targetLeft
+        y: stripY,
+        width: window.width,
+        height: window.height,
+        rotateY: 25,
+        rotateX: 5,
+        originX: 0,
+        originY: 0.5,
     };
 
     // Calculate Origin State
-    // Calculate Origin State
     const getOriginState = () => {
         if (window.minimized && dockPos) {
-            // Minimize to Dock logic
             return {
                 opacity: 0,
                 scale: 0.05,
                 x: dockPos.x - (window.width / 2),
                 y: dockPos.y - (window.height / 2),
                 width: window.width,
-                height: window.height
+                height: window.height,
+                rotateY: 0,
+                rotateX: 0,
+                originX: 0.5,
+                originY: 0.5,
             };
         }
 
-        // If we have an origin (Opening animation)
         if (window.origin) {
             const originX = window.origin.x || 0;
             const originY = window.origin.y || 0;
@@ -99,69 +152,110 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 x: originX - (window.width / 2),
                 y: originY - (window.height / 2),
                 width: window.width,
-                height: window.height
+                height: window.height,
+                rotateY: 0,
+                rotateX: 0,
+                originX: 0.5,
+                originY: 0.5,
             };
         }
 
-        // Fallback (Fade in center if no origin)
         return {
             opacity: 0,
             scale: 0.95,
             x: window.x,
             y: window.y + 20,
             width: window.width,
-            height: window.height
+            height: window.height,
+            rotateY: 0,
+            rotateX: 0,
+            originX: 0.5,
+            originY: 0.5,
         };
     };
 
-    // Log intent
+    const appConfig = DOCK_APPS.find(a => a.id === window.appId);
 
+    // Calculate flat icon state for Stage Manager Strip
+    const iconScale = isActuallyInStrip ? 1 : 0.5;
+    const iconOpacity = isActuallyInStrip ? 1 : 0;
+    // targetLeft and targetTop from the strip state calculations above:
+    const iconX = targetLeft - 5;
+    const iconY = targetTop + (window.height * scale) - 30;
+
+    // If it's pushed out of the strip, don't render it at all (or render invisible)
+    if (isHiddenByStageManager) {
+        return null;
+    }
 
     return (
-        <motion.div
+        <>
+            <motion.div
             className={clsx(
                 "absolute flex flex-col mac-window origin-center top-0 left-0",
-                window.isForeground ? "z-50" : "z-0 grayscale-[0.05] opacity-95",
+                window.isForeground ? "z-50" : "z-10",
+                isActuallyInStrip && "cursor-pointer"
             )}
             initial={getOriginState()}
-            animate={window.minimized ? getOriginState() : normalState}
+            animate={window.minimized ? getOriginState() : isActuallyInStrip ? stripState : normalState}
             transition={isDragging
                 ? { duration: 0 }
-                : { duration: 0.4, ease: [0.16, 1, 0.3, 1] }
+                : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
             }
             style={{
                 zIndex: window.zIndex,
                 pointerEvents: window.minimized ? 'none' : 'auto',
+                boxShadow: window.isForeground ? 'var(--window-shadow-active)' : 'var(--window-shadow-inactive)',
+                transformPerspective: 1200,
+                transformStyle: "preserve-3d",
             }}
             onPointerDown={handlePointerDown}
-            drag={false} // We handle drag manually for better window control
+            drag={false}
         >
+            {/* Stage Manager Strip Overlay interceptor */}
+            {isActuallyInStrip && (
+                <div 
+                    className="absolute inset-0 z-[99999]"
+                    onPointerDown={(e) => {
+                        e.stopPropagation();
+                        focusWindow(window.id);
+                    }}
+                />
+            )}
+
             {/* Title Bar */}
             <div
                 className="mac-titlebar"
                 onPointerDown={handleDragStart}
             >
-                <div className="flex gap-2 group">
-                    {/* Traffic Lights - Show icons on group hover */}
+                <div className="flex gap-2 group ml-1">
+                    {/* Traffic Lights */}
                     <div
                         className="w-3 h-3 rounded-full bg-[#FF5F56] border-[0.5px] border-[#E0443E] flex items-center justify-center cursor-pointer active:brightness-75 transition-all"
                         onClick={(e) => { e.stopPropagation(); closeWindow(window.id); }}
                     >
-                        <X size={7} color="#4d0000" className="opacity-0 group-hover:opacity-100 transition-opacity" strokeWidth={3} />
+                        <svg width="7" height="7" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <path d="M1 1L7 7M7 1L1 7" stroke="rgba(77, 0, 0, 0.7)" strokeWidth="1.2" strokeLinecap="round"/>
+                        </svg>
                     </div>
 
                     <div
                         className="w-3 h-3 rounded-full bg-[#FFBD2E] border-[0.5px] border-[#DFA123] flex items-center justify-center cursor-pointer active:brightness-75 transition-all"
                         onClick={(e) => { e.stopPropagation(); minimizeWindow(window.id); }}
                     >
-                        <Minus size={7} color="#995D00" className="opacity-0 group-hover:opacity-100 transition-opacity" strokeWidth={3} />
+                        <svg width="7" height="7" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <path d="M1 4H7" stroke="rgba(153, 93, 0, 0.7)" strokeWidth="1.2" strokeLinecap="round"/>
+                        </svg>
                     </div>
 
                     <div
                         className="w-3 h-3 rounded-full bg-[#27C93F] border-[0.5px] border-[#1AAB29] flex items-center justify-center cursor-pointer active:brightness-75 transition-all"
                         onClick={(e) => { e.stopPropagation(); maximizeWindow(window.id); }}
                     >
-                        <Maximize2 size={6} color="#006500" className="opacity-0 group-hover:opacity-100 transition-opacity rotate-45" strokeWidth={3} />
+                        <svg width="7" height="7" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <path d="M1.5 6.5V1.5H6.5" stroke="rgba(0, 101, 0, 0.7)" strokeWidth="1.2" strokeLinecap="round"/>
+                            <path d="M6.5 1.5L1.5 6.5" stroke="rgba(0, 101, 0, 0.7)" strokeWidth="1.2" strokeLinecap="round"/>
+                        </svg>
                     </div>
                 </div>
 
@@ -176,5 +270,34 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             </div>
 
         </motion.div>
+
+        {/* Stage Manager App Icon Overlay */}
+        {stageManager && appConfig && (
+            <motion.div
+                className={clsx(
+                    "absolute z-[999999] rounded-[14px] flex items-center justify-center shadow-xl border border-white/20 pointer-events-none origin-center",
+                    appConfig.color
+                )}
+                style={{
+                    width: 52,
+                    height: 52,
+                    zIndex: window.zIndex + 1,
+                }}
+                animate={{
+                    opacity: iconOpacity,
+                    x: iconX,
+                    y: iconY,
+                    scale: iconScale
+                }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                transition={isDragging
+                    ? { duration: 0 }
+                    : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+                }
+            >
+                <appConfig.icon size={26} className={appConfig.color.includes('text-') ? "" : "text-white"} />
+            </motion.div>
+        )}
+        </>
     );
 };
