@@ -230,16 +230,25 @@ export const Desktop: React.FC = () => {
 
     return (
         <motion.div
-            className="absolute inset-0 z-0 bg-cover bg-center overflow-hidden"
-            style={{ backgroundImage: wallpaper.includes('gradient') ? wallpaper : `url(${wallpaper})` }}
-            initial={{ scale: 1.2, filter: 'blur(10px)' }}
+            className="absolute inset-0 z-0 overflow-hidden"
             onContextMenu={(e) => handleContextMenu(e)}
+            initial={{ scale: 1.2, filter: 'blur(10px)' }}
             animate={{
-                scale: isLocked ? 1.1 : (isMissionControlOpen ? 1.02 : 1),
-                filter: isLocked ? 'blur(0px)' : (isMissionControlOpen ? 'blur(5px) brightness(0.6)' : 'none')
+                scale: isLocked ? 1.1 : 1,
+                filter: isLocked ? 'blur(0px)' : 'none'
             }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
+            {/* Wallpaper Layer */}
+            <motion.div
+                className="absolute inset-0 bg-cover bg-center z-[-1]"
+                style={{ backgroundImage: wallpaper.includes('gradient') ? wallpaper : `url(${wallpaper})` }}
+                animate={{
+                    scale: isMissionControlOpen ? 1.02 : 1,
+                    filter: isMissionControlOpen ? 'blur(5px) brightness(0.6)' : 'none'
+                }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            />
             {/* Mission Control Interaction Layer */}
             {isMissionControlOpen && (
                 <div 
