@@ -108,12 +108,12 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const slotSpacing = Math.min(180, availableHeight / totalSlots);
 
     const scale = 0.22;
-    // Stack goes UP and RIGHT with smaller offset, capped at 4 so it doesn't span across the screen
+    // Stack goes purely DOWNWARDS
     const visualOffsetIndex = Math.min(4, appWindowIndex + overflowIndex);
-    const offset = visualOffsetIndex * 15;
-    const targetLeft = 10 + offset;
+    const offsetY = visualOffsetIndex * 20;
+    const targetLeft = 10;
     const frontTargetTop = 80 + (slotIndex * slotSpacing);
-    const targetTop = frontTargetTop - offset;
+    const targetTop = frontTargetTop + offsetY;
 
     const stripY = targetTop - (window.height / 2 * (1 - scale));
 
