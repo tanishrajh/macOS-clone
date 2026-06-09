@@ -7,7 +7,7 @@ interface ShortcutsProps {
     onMissionControlToggle: () => void;
 }
 
-export const useGlobalShortcuts = ({ onSpotlightToggle, onAppSwitcherToggle }: ShortcutsProps) => {
+export const useGlobalShortcuts = ({ onSpotlightToggle, onAppSwitcherToggle, onMissionControlToggle }: ShortcutsProps) => {
     // const { closeWindow, minimizeWindow } = useWindowManager();
 
     useEffect(() => {
