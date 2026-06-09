@@ -108,8 +108,9 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const slotSpacing = Math.min(180, availableHeight / totalSlots);
 
     const scale = 0.22;
-    // Stack goes UP and RIGHT with larger offset
-    const offset = (appWindowIndex + overflowIndex) * 30;
+    // Stack goes UP and RIGHT with smaller offset, capped at 4 so it doesn't span across the screen
+    const visualOffsetIndex = Math.min(4, appWindowIndex + overflowIndex);
+    const offset = visualOffsetIndex * 15;
     const targetLeft = 10 + offset;
     const frontTargetTop = 80 + (slotIndex * slotSpacing);
     const targetTop = frontTargetTop - offset;
@@ -186,10 +187,10 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const iconScale = showIcon ? 1 : 0.5;
     const iconOpacity = showIcon ? 1 : 0;
     
-    // Icons are anchored to the front window's Y position, but offset in X
-    const iconX = 5 + (overflowIndex * 35);
-    const iconY = frontTargetTop + (window.height * scale) - 30;
-    const iconZIndex = 999999 - overflowIndex;
+    // Icons are anchored to their respective window's position, so they stack diagonally too
+    const iconX = targetLeft - 5;
+    const iconY = targetTop + (window.height * scale) - 25;
+    const iconZIndex = window.zIndex + 1;
 
     return (
         <>
