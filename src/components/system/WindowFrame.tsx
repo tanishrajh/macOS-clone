@@ -13,16 +13,29 @@ interface WindowFrameProps {
 }
 
 export const WindowFrame = ({ window, children }: WindowFrameProps) => {
-    const { windows, activeWindowId, closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow, dockItems } = useWindowManager();
+    const { windows, activeWindowId, closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow, dockItems, expandedSlot, setExpandedSlot } = useWindowManager();
     const { stageManager } = useSettings();
     const [isDragging, setIsDragging] = useState(false);
     const dragOffset = useRef({ x: 0, y: 0 });
 
     const dockPos = dockItems[window.appId];
 
-    const handlePointerDown = () => {
+    const handlePointerDown = (e: React.PointerEvent) => {
         if (!window.isForeground) {
+            // Stage Manager Strip click handling
+            const isActuallyInStrip = stageManager && activeWindowId !== window.id && !window.minimized; // rough check
+            if (isActuallyInStrip) {
+                const isStack = overflowIndex > 0 || appWindowIndex > 0;
+                
+                // If it's a stack and not expanded, expand it
+                if ((appWindowIndex > 0 || overflowIndex > 0) && expandedSlot !== slotIndex) {
+                    setExpandedSlot(slotIndex);
+                    e.stopPropagation();
+                    return;
+                }
+            }
             focusWindow(window.id);
+            setExpandedSlot(null);
         }
     };
 
@@ -108,10 +121,20 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const slotSpacing = Math.min(220, availableHeight / totalSlots);
 
     const scale = 0.22;
+    const isExpanded = expandedSlot === slotIndex;
+
     // Stack goes purely DOWNWARDS to utilize empty space
     const visualOffsetIndex = Math.min(4, appWindowIndex + overflowIndex);
-    const offsetY = visualOffsetIndex * 15;
-    const targetLeft = 10;
+    
+    let offsetY = visualOffsetIndex * 15;
+    let targetLeft = 10;
+    
+    if (isExpanded) {
+        // Fan out horizontally when expanded
+        offsetY = 0;
+        targetLeft = 10 + (appWindowIndex + overflowIndex) * (window.width * scale + 20);
+    }
+    
     const frontTargetTop = 80 + (slotIndex * slotSpacing);
     const targetTop = frontTargetTop + offsetY;
 
@@ -124,7 +147,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         y: stripY,
         width: window.width,
         height: window.height,
-        rotateY: 35,
+        rotateY: isExpanded ? 0 : 35, // Flatten out when expanded
         rotateX: 0,
         originX: 0,
         originY: 0.5,
@@ -188,8 +211,8 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const iconOpacity = showIcon ? 1 : 0;
     
     // Icons are anchored to their respective window's position, so they stack diagonally too
-    const iconX = targetLeft - 5;
-    const iconY = targetTop + (window.height * scale) - 25;
+    const iconX = isExpanded ? targetLeft + (window.width * scale / 2) - 26 : targetLeft - 5;
+    const iconY = targetTop + (window.height * scale) - (isExpanded ? -10 : 25);
     
     // Reverse Z-index for overflow apps so they stack ON TOP of the front app
     const visualZIndex = isActuallyInStrip ? window.zIndex + (overflowIndex * 100) : window.zIndex;

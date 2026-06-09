@@ -23,6 +23,9 @@ interface WindowStore {
 
     isSpotlightOpen: boolean;
     toggleSpotlight: (isOpen?: boolean) => void;
+
+    expandedSlot: number | null;
+    setExpandedSlot: (slot: number | null) => void;
 }
 
 export const useWindowManager = create<WindowStore>((set, get) => ({
@@ -218,5 +221,8 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
         set(state => ({
             isSpotlightOpen: isOpen !== undefined ? isOpen : !state.isSpotlightOpen
         }));
-    }
+    },
+
+    expandedSlot: null,
+    setExpandedSlot: (slot) => set({ expandedSlot: slot })
 }));
