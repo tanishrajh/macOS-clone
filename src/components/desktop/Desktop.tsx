@@ -252,7 +252,7 @@ export const Desktop: React.FC = () => {
             {/* Mission Control Interaction Layer */}
             {isMissionControlOpen && (
                 <div 
-                    className="absolute inset-0 z-[100]" 
+                    className="absolute inset-0 z-0" 
                     onClick={() => toggleMissionControl(false)} 
                 />
             )}
