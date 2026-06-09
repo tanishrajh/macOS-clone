@@ -8,6 +8,7 @@ import { FileIcon } from '../system/FileIcon';
 import { WindowFrame } from '../system/WindowFrame';
 import { ContextMenu } from '../system/ContextMenu';
 import { Dialog } from '../system/Dialog';
+import { NotificationCenter } from '../system/NotificationCenter';
 import { WidgetContainer, ClockWidget, WeatherWidget, CalendarWidget, BatteryWidget, NotesWidget } from './widgets';
 
 const WIDGET_COMPONENTS: Record<string, React.FC<any>> = {
@@ -220,7 +221,7 @@ export const Desktop: React.FC = () => {
                     })
                 },
                 { separator: true },
-                { label: 'Change Wallpaper...', action: () => openWindow('settings', SystemSettings, 'System Settings') },
+                { label: 'Change Wallpaper...', action: () => openWindow('settings', 'System Settings') },
                 { label: 'Edit Widgets...', action: () => toggleWidgetGallery(true) },
                 { separator: true },
                 { label: 'Clean Up', action: () => setSelectedIds(new Set()) },
@@ -319,6 +320,7 @@ export const Desktop: React.FC = () => {
 
             {/* Widget Gallery Sidebar */}
             <WidgetGallery />
+            <NotificationCenter />
 
             {/* Dialogs */}
             <Dialog

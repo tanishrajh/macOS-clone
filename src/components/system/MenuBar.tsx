@@ -6,6 +6,7 @@ import { ControlCenter } from './ControlCenter';
 import clsx from 'clsx';
 import { useSettings } from '../../store/settings';
 import { useSystem } from '../../store/system';
+import { useNotificationManager } from '../../store/notification-manager';
 import { MenuBarMenus } from './MenuBarMenus';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog } from './Dialog';
@@ -19,6 +20,7 @@ export const MenuBar: React.FC = () => {
     const [controlCenterOpen, setControlCenterOpen] = useState(false);
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [appleMenuOpen, setAppleMenuOpen] = useState(false);
+    const { isNotificationCenterOpen, toggleNotificationCenter } = useNotificationManager();
 
     // Dialog States
     const [showAbout, setShowAbout] = useState(false);
@@ -258,8 +260,11 @@ export const MenuBar: React.FC = () => {
                     <ControlCenter isOpen={controlCenterOpen} onClose={() => setControlCenterOpen(false)} />
 
                     <div
-                        className={clsx("relative cursor-default min-w-[130px] text-right font-medium hover:bg-white/10 px-2 py-0.5 rounded transition-colors", calendarOpen && "bg-white/10")}
-                        onClick={() => setCalendarOpen(!calendarOpen)}
+                        className={clsx("relative cursor-pointer min-w-[130px] text-right font-medium hover:bg-white/10 px-2 py-0.5 rounded transition-colors", isNotificationCenterOpen && "bg-white/10")}
+                        onClick={() => {
+                            setCalendarOpen(false);
+                            toggleNotificationCenter();
+                        }}
                     >
                         {format(time, 'EEE d MMM h:mm aa')}
 
