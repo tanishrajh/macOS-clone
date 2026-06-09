@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware';
 import type { SystemSettings } from '../types/settings';
 
 interface SettingsStore extends SystemSettings {
+    useStacks: boolean;
+    toggleStacks: () => void;
     setTheme: (theme: 'light' | 'dark') => void;
     setWallpaper: (url: string) => void;
     setVolume: (val: number) => void;
@@ -48,7 +50,10 @@ export const useSettings = create<SettingsStore>()(
             focusMode: false,
             stageManager: true,
             widgets: [],
-
+            useStacks: false,
+            
+            toggleStacks: () => set((state) => ({ useStacks: !state.useStacks })),
+            
             setTheme: (theme) => set({ theme }),
             setWallpaper: (wallpaper) => set({ wallpaper }),
             setVolume: (volume) => set({ volume }),

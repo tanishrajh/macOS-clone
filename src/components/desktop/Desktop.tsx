@@ -9,6 +9,7 @@ import { WindowFrame } from '../system/WindowFrame';
 import { ContextMenu } from '../system/ContextMenu';
 import { Dialog } from '../system/Dialog';
 import { NotificationCenter } from '../system/NotificationCenter';
+import { DesktopStack } from './DesktopStack';
 import { WidgetContainer, ClockWidget, WeatherWidget, CalendarWidget, BatteryWidget, NotesWidget } from './widgets';
 
 const WIDGET_COMPONENTS: Record<string, React.FC<any>> = {
@@ -62,7 +63,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSystem } from '../../store/system';
 
 export const Desktop: React.FC = () => {
-    const { wallpaper, stageManager, toggleStageManager } = useSettings();
+    const { theme, wallpaper, stageManager, toggleStageManager, useStacks, toggleStacks } = useSettings();
     const { toggleWidgetGallery, activeWidgets } = useWidgetManager();
     const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { windows, openWindow, isMissionControlOpen, toggleMissionControl } = useWindowManager();
@@ -70,6 +71,7 @@ export const Desktop: React.FC = () => {
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [desktopFolderId, setDesktopFolderId] = useState<string | null>(null);
+    const [expandedStack, setExpandedStack] = useState<string | null>(null);
 
     // Find desktop folder ID
     useEffect(() => {
@@ -221,6 +223,7 @@ export const Desktop: React.FC = () => {
                     })
                 },
                 { separator: true },
+                { label: useStacks ? 'Unstack Desktop' : 'Use Stacks', action: () => toggleStacks() },
                 { label: 'Change Wallpaper...', action: () => openWindow('settings', 'System Settings') },
                 { label: 'Edit Widgets...', action: () => toggleWidgetGallery(true) },
                 { separator: true },
@@ -269,22 +272,64 @@ export const Desktop: React.FC = () => {
 
             <div className="absolute inset-0 bg-black/10 pointer-events-none z-[1]" />
 
-            {/* Desktop Icons */}
-            <div className="grid grid-flow-col grid-rows-[repeat(auto-fill,6rem)] gap-4 p-4 pt-10 content-start items-start justify-items-center w-full h-full pointer-events-none z-[2] relative">
-                {desktopFiles.map((file) => (
-                    <div key={file.id} className="pointer-events-auto">
-                        <FileIcon
-                            file={file}
-                            selected={selectedIds.has(file.id)}
-                            onClick={(e) => handleIconClick(e, file.id)}
-                            onDoubleClick={() => { }}
-                            onContextMenu={(e) => {
-                                e.stopPropagation();
-                                handleContextMenu(e, file.id);
-                            }}
-                        />
+            {/* Desktop Icons or Stacks */}
+            <div className="absolute inset-0 p-4 pt-10 pointer-events-none z-[2]" onClick={() => setExpandedStack(null)}>
+                {useStacks ? (
+                    // Stacks Layout
+                    <div className="relative w-full h-full">
+                        {Object.entries(
+                            desktopFiles.reduce((acc, file) => {
+                                const type = file.type === 'folder' ? 'Folders' : 'Documents';
+                                if (!acc[type]) acc[type] = [];
+                                acc[type].push(file);
+                                return acc;
+                            }, {} as Record<string, typeof desktopFiles>)
+                        ).map(([stackType, files], index) => {
+                            const yPos = index * 120 + 40; // Spacing out stacks vertically
+                            return (
+                                <div key={stackType} className="pointer-events-auto absolute right-4" style={{ top: yPos }}>
+                                    <DesktopStack
+                                        stackType={stackType}
+                                        files={files}
+                                        x={-100} // relative to parent
+                                        y={0}
+                                        isExpanded={expandedStack === stackType}
+                                        onToggle={() => setExpandedStack(expandedStack === stackType ? null : stackType)}
+                                        onOpenFile={(file) => {
+                                            if (file.type === 'folder') {
+                                                openWindow('finder', 'Finder', { initialPath: file.id });
+                                            } else {
+                                                openWindow('preview', file.name, { fileId: file.id });
+                                            }
+                                        }}
+                                        onFileContextMenu={(e, file) => {
+                                            e.stopPropagation();
+                                            handleContextMenu(e, file.id);
+                                        }}
+                                    />
+                                </div>
+                            );
+                        })}
                     </div>
-                ))}
+                ) : (
+                    // Grid Layout
+                    <div className="grid grid-flow-col grid-rows-[repeat(auto-fill,6rem)] gap-4 content-start items-start justify-items-center w-full h-full pointer-events-none">
+                        {desktopFiles.map((file) => (
+                            <div key={file.id} className="pointer-events-auto">
+                                <FileIcon
+                                    file={file}
+                                    selected={selectedIds.has(file.id)}
+                                    onClick={(e) => handleIconClick(e, file.id)}
+                                    onDoubleClick={() => { }}
+                                    onContextMenu={(e) => {
+                                        e.stopPropagation();
+                                        handleContextMenu(e, file.id);
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Desktop Widgets */}
