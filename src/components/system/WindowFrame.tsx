@@ -74,13 +74,14 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         .filter(w => w.appId !== stageActiveAppId && !w.minimized)
         .sort((a, b) => b.zIndex - a.zIndex) // highest zIndex first (most recent)
         .map(w => w.appId)
-        .filter((v, i, a) => a.indexOf(v) === i);
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .slice(0, 4);
 
     const isActuallyInStrip = isInStrip && stripAppIds.includes(window.appId);
 
     const appIndexInStrip = Math.max(0, stripAppIds.indexOf(window.appId));
-    const slotIndex = Math.min(4, appIndexInStrip);
-    const overflowIndex = Math.max(0, appIndexInStrip - 4); // 0 for first 5 apps, 1, 2, etc. for the rest
+    const slotIndex = Math.min(3, appIndexInStrip);
+    const overflowIndex = Math.max(0, appIndexInStrip - 3); // 0 for first 4 apps, 1, 2, etc. for the rest
 
     // Calculate stack offset for multiple windows of same app
     const windowsOfThisApp = Object.values(windows)
@@ -104,13 +105,13 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
     // Strip State (Stage Manager)
     const availableHeight = typeof globalThis.window !== 'undefined' ? globalThis.window.innerHeight - 150 : 800;
-    const totalSlots = Math.min(5, Math.max(1, stripAppIds.length));
-    const slotSpacing = Math.min(180, availableHeight / totalSlots);
+    const totalSlots = Math.min(4, Math.max(1, stripAppIds.length));
+    const slotSpacing = Math.min(220, availableHeight / totalSlots);
 
     const scale = 0.22;
     // Stack goes purely UPWARDS
     const visualOffsetIndex = Math.min(4, appWindowIndex + overflowIndex);
-    const offsetY = visualOffsetIndex * 20;
+    const offsetY = visualOffsetIndex * 8;
     const targetLeft = 10;
     const frontTargetTop = 80 + (slotIndex * slotSpacing);
     const targetTop = frontTargetTop - offsetY;
