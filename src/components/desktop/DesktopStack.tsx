@@ -46,7 +46,7 @@ export const DesktopStack: React.FC<DesktopStackProps> = ({
                                 y: -((arr.length - 1 - i) * 3)
                             }}
                         >
-                            <FileIcon type={f.type} size={64} extension={f.extension} />
+                            <FileIcon file={f} showLabel={false} />
                         </motion.div>
                     ))}
 
@@ -85,7 +85,7 @@ export const DesktopStack: React.FC<DesktopStackProps> = ({
                             onContextMenu={(e) => onFileContextMenu(e, file)}
                         >
                             <div className="w-16 h-16 flex items-center justify-center">
-                                <FileIcon type={file.type} size={64} extension={file.extension} />
+                                <FileIcon file={file} showLabel={false} />
                             </div>
                             <div className="px-1.5 py-0.5 rounded text-[12px] font-medium text-white bg-black/30 backdrop-blur-md max-w-full line-clamp-2 text-center leading-tight">
                                 {file.name}
