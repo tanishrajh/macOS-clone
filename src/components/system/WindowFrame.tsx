@@ -83,7 +83,9 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const overflowIndex = Math.max(0, appIndexInStrip - 4); // 0 for first 5 apps, 1, 2, etc. for the rest
 
     // Calculate stack offset for multiple windows of same app
-    const windowsOfThisApp = Object.values(windows).filter(w => w.appId === window.appId && !w.minimized);
+    const windowsOfThisApp = Object.values(windows)
+        .filter(w => w.appId === window.appId && !w.minimized)
+        .sort((a, b) => b.zIndex - a.zIndex);
     const appWindowIndex = Math.max(0, windowsOfThisApp.findIndex(w => w.id === window.id));
 
     // Default Animation State (Normal Window)
@@ -106,8 +108,9 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const slotSpacing = Math.min(180, availableHeight / totalSlots);
 
     const scale = 0.22;
-    const targetLeft = 10 + (appWindowIndex * 20) + (overflowIndex * 15);
-    const targetTop = 80 + (slotIndex * slotSpacing) + (appWindowIndex * 20) + (overflowIndex * 15);
+    // Stack goes UP and RIGHT (positive X, negative Y)
+    const targetLeft = 10 + (appWindowIndex * 15) + (overflowIndex * 15);
+    const targetTop = 80 + (slotIndex * slotSpacing) - (appWindowIndex * 15) - (overflowIndex * 15);
 
     const stripY = targetTop - (window.height / 2 * (1 - scale));
 
@@ -174,9 +177,12 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
     const appConfig = DOCK_APPS.find(a => a.id === window.appId);
 
+    const isFrontOfSlot = overflowIndex === 0 && appWindowIndex === 0;
+    const showIcon = stageManager && appConfig && isActuallyInStrip && isFrontOfSlot;
+
     // Calculate flat icon state for Stage Manager Strip
-    const iconScale = isActuallyInStrip ? 1 : 0.5;
-    const iconOpacity = isActuallyInStrip ? 1 : 0;
+    const iconScale = showIcon ? 1 : 0.5;
+    const iconOpacity = showIcon ? 1 : 0;
     // targetLeft and targetTop from the strip state calculations above:
     const iconX = targetLeft - 5;
     const iconY = targetTop + (window.height * scale) - 30;
@@ -265,7 +271,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         </motion.div>
 
         {/* Stage Manager App Icon Overlay */}
-        {stageManager && appConfig && (
+        {showIcon && (
             <motion.div
                 className={clsx(
                     "absolute z-[999999] rounded-[14px] flex items-center justify-center shadow-xl border border-white/20 pointer-events-none origin-center",
