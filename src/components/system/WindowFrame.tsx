@@ -248,7 +248,13 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                     className="absolute inset-0 z-[99999]"
                     onPointerDown={(e) => {
                         e.stopPropagation();
-                        focusWindow(window.id);
+                        const isStack = windowsOfThisApp.length > 1;
+                        if (isStack && expandedSlot !== slotIndex) {
+                            setExpandedSlot(slotIndex);
+                        } else {
+                            focusWindow(window.id);
+                            setExpandedSlot(null);
+                        }
                     }}
                 />
             )}
