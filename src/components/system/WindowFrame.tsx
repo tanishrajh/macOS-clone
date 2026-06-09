@@ -70,19 +70,17 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const isInStrip = stageManager && stageActiveAppId !== window.appId && !window.minimized;
 
     // Calculate strip position if in strip
-    const allBackgroundApps = Object.values(windows)
+    const stripAppIds = Object.values(windows)
         .filter(w => w.appId !== stageActiveAppId && !w.minimized)
         .sort((a, b) => b.zIndex - a.zIndex) // highest zIndex first (most recent)
         .map(w => w.appId)
         .filter((v, i, a) => a.indexOf(v) === i);
 
-    const stripAppIds = allBackgroundApps.slice(0, 5); // Max 5 apps in strip
-    
-    // Re-evaluate isInStrip based on the limit
     const isActuallyInStrip = isInStrip && stripAppIds.includes(window.appId);
-    const isHiddenByStageManager = stageManager && !isInStage && !isActuallyInStrip && !window.minimized;
 
-    const slotIndex = Math.max(0, stripAppIds.indexOf(window.appId));
+    const appIndexInStrip = Math.max(0, stripAppIds.indexOf(window.appId));
+    const slotIndex = Math.min(4, appIndexInStrip);
+    const overflowIndex = Math.max(0, appIndexInStrip - 4); // 0 for first 5 apps, 1, 2, etc. for the rest
 
     // Calculate stack offset for multiple windows of same app
     const windowsOfThisApp = Object.values(windows).filter(w => w.appId === window.appId && !w.minimized);
@@ -104,12 +102,12 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
     // Strip State (Stage Manager)
     const availableHeight = typeof globalThis.window !== 'undefined' ? globalThis.window.innerHeight - 150 : 800;
-    const totalSlots = Math.max(1, stripAppIds.length);
+    const totalSlots = Math.min(5, Math.max(1, stripAppIds.length));
     const slotSpacing = Math.min(180, availableHeight / totalSlots);
 
     const scale = 0.22;
-    const targetLeft = 10 + (appWindowIndex * 20);
-    const targetTop = 80 + (slotIndex * slotSpacing) + (appWindowIndex * 20);
+    const targetLeft = 10 + (appWindowIndex * 20) + (overflowIndex * 15);
+    const targetTop = 80 + (slotIndex * slotSpacing) + (appWindowIndex * 20) + (overflowIndex * 15);
 
     const stripY = targetTop - (window.height / 2 * (1 - scale));
 
@@ -182,11 +180,6 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     // targetLeft and targetTop from the strip state calculations above:
     const iconX = targetLeft - 5;
     const iconY = targetTop + (window.height * scale) - 30;
-
-    // If it's pushed out of the strip, don't render it at all (or render invisible)
-    if (isHiddenByStageManager) {
-        return null;
-    }
 
     return (
         <>
