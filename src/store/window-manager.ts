@@ -26,6 +26,9 @@ interface WindowStore {
 
     expandedSlot: number | null;
     setExpandedSlot: (slot: number | null) => void;
+
+    isMissionControlOpen: boolean;
+    toggleMissionControl: (isOpen?: boolean) => void;
 }
 
 export const useWindowManager = create<WindowStore>((set, get) => ({
@@ -139,7 +142,8 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
                     [id]: { ...window, minimized: false }
                 },
                 windowOrder: newOrder,
-                activeWindowId: id
+                activeWindowId: id,
+                isMissionControlOpen: false
             };
         });
     },
@@ -224,5 +228,12 @@ export const useWindowManager = create<WindowStore>((set, get) => ({
     },
 
     expandedSlot: null,
-    setExpandedSlot: (slot) => set({ expandedSlot: slot })
+    setExpandedSlot: (slot) => set({ expandedSlot: slot }),
+
+    isMissionControlOpen: false,
+    toggleMissionControl: (isOpen) => {
+        set(state => ({
+            isMissionControlOpen: isOpen !== undefined ? isOpen : !state.isMissionControlOpen
+        }));
+    }
 }));

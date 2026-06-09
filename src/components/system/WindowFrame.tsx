@@ -13,7 +13,7 @@ interface WindowFrameProps {
 }
 
 export const WindowFrame = ({ window, children }: WindowFrameProps) => {
-    const { windows, activeWindowId, closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow, dockItems, expandedSlot, setExpandedSlot } = useWindowManager();
+    const { windows, activeWindowId, closeWindow, minimizeWindow, maximizeWindow, focusWindow, moveWindow, dockItems, expandedSlot, setExpandedSlot, isMissionControlOpen } = useWindowManager();
     const { stageManager } = useSettings();
     const [isDragging, setIsDragging] = useState(false);
     const dragOffset = useRef({ x: 0, y: 0 });
@@ -22,6 +22,8 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
     const handlePointerDown = (e: React.PointerEvent) => {
         if (!window.isForeground) {
+            if (isMissionControlOpen) return; // Prevent normal strip clicks during MC
+
             // Stage Manager Strip click handling
             const isActuallyInStrip = stageManager && activeWindowId !== window.id && !window.minimized; // rough check
             if (isActuallyInStrip) {
@@ -36,6 +38,8 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             }
             focusWindow(window.id);
             setExpandedSlot(null);
+        } else if (isMissionControlOpen) {
+            focusWindow(window.id);
         }
     };
 
@@ -100,6 +104,57 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         .filter(w => w.appId === window.appId && !w.minimized)
         .sort((a, b) => b.zIndex - a.zIndex);
     const appWindowIndex = Math.max(0, windowsOfThisApp.findIndex(w => w.id === window.id));
+
+    // Mission Control Logic
+    let missionControlState: any = null;
+    if (isMissionControlOpen && !window.minimized) {
+        const unminimizedWindows = Object.values(windows).filter(w => !w.minimized).sort((a, b) => a.zIndex - b.zIndex);
+        const mcWindowIndex = unminimizedWindows.findIndex(w => w.id === window.id);
+        const totalWindows = unminimizedWindows.length;
+
+        if (mcWindowIndex !== -1) {
+            const cols = Math.ceil(Math.sqrt(totalWindows));
+            const rows = Math.ceil(totalWindows / cols);
+            
+            const screenW = typeof globalThis.window !== 'undefined' ? globalThis.window.innerWidth : 1920;
+            const screenH = typeof globalThis.window !== 'undefined' ? globalThis.window.innerHeight : 1080;
+            
+            const paddingX = 120;
+            const paddingY = 100;
+            const availableW = screenW - paddingX * 2;
+            const availableH = screenH - paddingY * 2 - 100; // Leave room for dock
+            
+            const colIndex = mcWindowIndex % cols;
+            const rowIndex = Math.floor(mcWindowIndex / cols);
+            
+            const cellW = availableW / cols;
+            const cellH = availableH / rows;
+            
+            const maxTargetW = cellW - 40;
+            const maxTargetH = cellH - 40;
+            
+            const wWidth = window.maximized ? screenW : (window.width as number);
+            const wHeight = window.maximized ? screenH - 30 : (window.height as number);
+            
+            const scaleX = maxTargetW / wWidth;
+            const scaleY = maxTargetH / wHeight;
+            const targetScale = Math.min(scaleX, scaleY, 0.85); // Cap scale
+            
+            const cellCenterX = paddingX + (colIndex * cellW) + (cellW / 2);
+            const cellCenterY = paddingY + (rowIndex * cellH) + (cellH / 2);
+            
+            missionControlState = {
+                opacity: 1,
+                scale: targetScale,
+                x: cellCenterX - (wWidth / 2),
+                y: cellCenterY - (wHeight / 2),
+                rotateY: 0,
+                rotateX: 0,
+                originX: 0.5,
+                originY: 0.5,
+            };
+        }
+    }
 
     // Default Animation State (Normal Window)
     const normalState = {
@@ -204,7 +259,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const appConfig = DOCK_APPS.find(a => a.id === window.appId);
 
     // Only show icon for the first window of each app in the strip
-    const showIcon = stageManager && appConfig && isActuallyInStrip && appWindowIndex === 0;
+    const showIcon = !isMissionControlOpen && stageManager && appConfig && isActuallyInStrip && appWindowIndex === 0;
 
     // Calculate flat icon state for Stage Manager Strip
     const iconScale = showIcon ? 1 : 0.5;
@@ -227,7 +282,8 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 isActuallyInStrip && "cursor-pointer"
             )}
             initial={getOriginState()}
-            animate={window.minimized ? getOriginState() : isActuallyInStrip ? stripState : normalState}
+            animate={window.minimized ? getOriginState() : isMissionControlOpen && missionControlState ? missionControlState : (isActuallyInStrip ? stripState : normalState)}
+            whileHover={isMissionControlOpen && missionControlState ? { scale: missionControlState.scale * 1.05 } : undefined}
             transition={isDragging
                 ? { duration: 0 }
                 : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
@@ -242,8 +298,19 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             onPointerDown={handlePointerDown}
             drag={false}
         >
+            {/* Mission Control Interceptor */}
+            {isMissionControlOpen && (
+                <div 
+                    className="absolute inset-0 z-[999999] cursor-pointer"
+                    onPointerDown={(e) => {
+                        e.stopPropagation();
+                        focusWindow(window.id);
+                    }}
+                />
+            )}
+
             {/* Stage Manager Strip Overlay interceptor */}
-            {isActuallyInStrip && (
+            {!isMissionControlOpen && isActuallyInStrip && (
                 <div 
                     className="absolute inset-0 z-[99999]"
                     onPointerDown={(e) => {

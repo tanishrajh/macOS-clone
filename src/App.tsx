@@ -26,13 +26,15 @@ function App() {
     toggleLaunchpad,
     focusWindow,
     isSpotlightOpen,
-    toggleSpotlight
+    toggleSpotlight,
+    toggleMissionControl
   } = useWindowManager();
 
   // Global Shortcuts
   useGlobalShortcuts({
     onSpotlightToggle: () => toggleSpotlight(),
-    onAppSwitcherToggle: () => setSwitcherOpen(true)
+    onAppSwitcherToggle: () => setSwitcherOpen(true),
+    onMissionControlToggle: () => toggleMissionControl()
   });
 
   // Theme handling

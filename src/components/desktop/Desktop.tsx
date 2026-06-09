@@ -61,7 +61,7 @@ import { useSystem } from '../../store/system';
 export const Desktop: React.FC = () => {
     const { wallpaper, widgets, stageManager, toggleStageManager } = useSettings();
     const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
-    const { windows, openWindow } = useWindowManager();
+    const { windows, openWindow, isMissionControlOpen, toggleMissionControl } = useWindowManager();
     const { isLocked } = useSystem();
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -100,6 +100,9 @@ export const Desktop: React.FC = () => {
         setSelectedIds(new Set());
         if (stageManager) {
             useWindowManager.getState().clearFocus();
+        }
+        if (isMissionControlOpen) {
+            toggleMissionControl(false);
         }
     };
 
@@ -232,11 +235,18 @@ export const Desktop: React.FC = () => {
             initial={{ scale: 1.2, filter: 'blur(10px)' }}
             onContextMenu={(e) => handleContextMenu(e)}
             animate={{
-                scale: isLocked ? 1.1 : 1,
-                filter: isLocked ? 'blur(0px)' : 'none'
+                scale: isLocked ? 1.1 : (isMissionControlOpen ? 1.02 : 1),
+                filter: isLocked ? 'blur(0px)' : (isMissionControlOpen ? 'blur(5px) brightness(0.6)' : 'none')
             }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
+            {/* Mission Control Interaction Layer */}
+            {isMissionControlOpen && (
+                <div 
+                    className="absolute inset-0 z-[100]" 
+                    onClick={() => toggleMissionControl(false)} 
+                />
+            )}
             {/* Background Interaction Layer - Explicitly catches clicks */}
             <div
                 className="absolute inset-0 z-0"

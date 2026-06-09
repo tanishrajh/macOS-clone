@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 interface ShortcutsProps {
     onSpotlightToggle: () => void;
     onAppSwitcherToggle: () => void;
+    onMissionControlToggle: () => void;
 }
 
 export const useGlobalShortcuts = ({ onSpotlightToggle, onAppSwitcherToggle }: ShortcutsProps) => {
@@ -23,6 +24,12 @@ export const useGlobalShortcuts = ({ onSpotlightToggle, onAppSwitcherToggle }: S
                 onAppSwitcherToggle();
             }
 
+            // Ctrl+Up -> Mission Control
+            if (e.ctrlKey && e.code === 'ArrowUp') {
+                e.preventDefault();
+                onMissionControlToggle();
+            }
+
             // Cmd+W -> Close Active Window
             if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
                 e.preventDefault();
@@ -36,5 +43,5 @@ export const useGlobalShortcuts = ({ onSpotlightToggle, onAppSwitcherToggle }: S
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onSpotlightToggle]);
+    }, [onSpotlightToggle, onAppSwitcherToggle, onMissionControlToggle]);
 };
