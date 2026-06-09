@@ -10,7 +10,7 @@ import { ContextMenu } from '../system/ContextMenu';
 import { Dialog } from '../system/Dialog';
 import { WidgetContainer, ClockWidget, WeatherWidget, CalendarWidget, BatteryWidget, NotesWidget } from './widgets';
 
-const WIDGET_COMPONENTS: Record<string, React.FC> = {
+const WIDGET_COMPONENTS: Record<string, React.FC<any>> = {
     'clock': ClockWidget,
     'weather': WeatherWidget,
     'calendar': CalendarWidget,
@@ -220,7 +220,7 @@ export const Desktop: React.FC = () => {
                     })
                 },
                 { separator: true },
-                { label: 'Change Wallpaper...', action: () => openWindow('settings') },
+                { label: 'Change Wallpaper...', action: () => openWindow('settings', SystemSettings, 'System Settings') },
                 { label: 'Edit Widgets...', action: () => toggleWidgetGallery(true) },
                 { separator: true },
                 { label: 'Clean Up', action: () => setSelectedIds(new Set()) },

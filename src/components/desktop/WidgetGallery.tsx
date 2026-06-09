@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useWidgetManager, WidgetType } from '../../store/widget-manager';
+import { useWidgetManager } from '../../store/widget-manager';
+import type { WidgetType } from '../../store/widget-manager';
 import { ClockWidget } from './widgets/ClockWidget';
 import { WeatherWidget } from './widgets/WeatherWidget';
 import { CalendarWidget } from './widgets/CalendarWidget';

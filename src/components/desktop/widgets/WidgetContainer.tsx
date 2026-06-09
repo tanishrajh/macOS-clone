@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
-import { useSettings } from '../../../store/settings';
-import { useSettings } from '../../../store/settings';
+
 import { useWidgetManager } from '../../../store/widget-manager';
 import { useWindowManager } from '../../../store/window-manager';
 import { Maximize2 } from 'lucide-react';
