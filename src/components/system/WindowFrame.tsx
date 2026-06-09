@@ -25,7 +25,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
             // Stage Manager Strip click handling
             const isActuallyInStrip = stageManager && activeWindowId !== window.id && !window.minimized; // rough check
             if (isActuallyInStrip) {
-                const isStack = windowsOfThisApp.length > 1;
+                const isStack = windowsOfThisApp.length > 1 || (slotIndex === 3 && stripAppIds.length > 4);
                 
                 // If it's a stack and not expanded, expand it
                 if (isStack && expandedSlot !== slotIndex) {
@@ -248,7 +248,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                     className="absolute inset-0 z-[99999]"
                     onPointerDown={(e) => {
                         e.stopPropagation();
-                        const isStack = windowsOfThisApp.length > 1;
+                        const isStack = windowsOfThisApp.length > 1 || (slotIndex === 3 && stripAppIds.length > 4);
                         if (isStack && expandedSlot !== slotIndex) {
                             setExpandedSlot(slotIndex);
                         } else {
