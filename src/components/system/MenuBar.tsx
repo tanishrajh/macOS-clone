@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, BatteryMedium, Search } from 'lucide-react';
+import { Wifi, BatteryMedium, Search, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWindowManager } from '../../store/window-manager';
 import { ControlCenter } from './ControlCenter';
@@ -243,6 +243,10 @@ export const MenuBar: React.FC = () => {
                     {/* Interactive Search Icon */}
                     <div onClick={() => toggleSpotlight()}>
                         <Search size={14} className="opacity-80 cursor-pointer" />
+                    </div>
+                    {/* Siri Icon */}
+                    <div onClick={() => useSystem.getState().toggleSiri()}>
+                        <Sparkles size={14} className="opacity-80 cursor-pointer text-indigo-300" />
                     </div>
                 </div>
 

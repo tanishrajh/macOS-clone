@@ -9,6 +9,7 @@ import { WindowFrame } from '../system/WindowFrame';
 import { ContextMenu } from '../system/ContextMenu';
 import { Dialog } from '../system/Dialog';
 import { NotificationCenter } from '../system/NotificationCenter';
+import { Siri } from '../system/Siri';
 import { DesktopStack } from './DesktopStack';
 import { WidgetContainer, ClockWidget, WeatherWidget, CalendarWidget, BatteryWidget, NotesWidget } from './widgets';
 
@@ -64,6 +65,7 @@ import { useSystem } from '../../store/system';
 
 export const Desktop: React.FC = () => {
     const { theme, wallpaper, stageManager, toggleStageManager, useStacks, toggleStacks } = useSettings();
+    const { isSiriOpen, toggleSiri } = useSystem();
     const { toggleWidgetGallery, activeWidgets } = useWidgetManager();
     const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { windows, openWindow, isMissionControlOpen, toggleMissionControl } = useWindowManager();
@@ -367,7 +369,8 @@ export const Desktop: React.FC = () => {
             <WidgetGallery />
             <NotificationCenter />
 
-            {/* Dialogs */}
+            {/* Dialogs & Overlays */}
+            <Siri isOpen={isSiriOpen} onClose={() => toggleSiri(false)} />
             <Dialog
                 open={!!infoFile}
                 onClose={() => setInfoFile(null)}
