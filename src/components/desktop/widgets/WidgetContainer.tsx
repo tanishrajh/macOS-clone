@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 import { useSettings } from '../../../store/settings';
+import { useSettings } from '../../../store/settings';
+import { useWidgetManager } from '../../../store/widget-manager';
+import { useWindowManager } from '../../../store/window-manager';
 import { Maximize2 } from 'lucide-react';
-import type { WidgetSize } from '../../../types/settings';
+import type { WidgetSize } from '../../../store/widget-manager';
 
 interface WidgetContainerProps {
     id: string;
@@ -14,17 +17,28 @@ interface WidgetContainerProps {
 }
 
 export const WidgetContainer: React.FC<WidgetContainerProps> = ({ id, initialX, initialY, size, onContextMenu, children }) => {
-    const { updateWidgetPosition, updateWidgetSize, removeWidget } = useSettings();
+    const { updateWidgetPosition, updateWidgetSize, removeWidget } = useWidgetManager();
+    const { activeWindowId, isMissionControlOpen } = useWindowManager();
     const x = useMotionValue(initialX);
     const y = useMotionValue(initialY);
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    const isDimmed = activeWindowId !== null && !isMissionControlOpen;
 
     return (
         <motion.div
             drag
             dragMomentum={false}
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ 
+                opacity: isMissionControlOpen ? 0 : 1, 
+                scale: isMissionControlOpen ? 0.8 : 1,
+                filter: isDimmed && !isHovered ? 'grayscale(100%) opacity(60%) blur(1px)' : 'grayscale(0%) opacity(100%) blur(0px)'
+            }}
             exit={{ opacity: 0, scale: 0.8 }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            transition={{ filter: { duration: 0.3 } }}
             onDragEnd={() => {
                 const currentX = x.get();
                 const currentY = y.get();

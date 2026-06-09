@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useWindowManager } from '../../store/window-manager';
 import { useFileSystem } from '../../store/filesystem';
+import { useWidgetManager } from '../../store/widget-manager';
 
 const MENU_STRUCTURE = {
     File: [
@@ -25,6 +26,8 @@ const MENU_STRUCTURE = {
         { label: 'Select All', action: 'select-all' },
     ],
     View: [
+        { label: 'Edit Widgets...', action: 'edit-widgets' },
+        { divider: true },
         { label: 'as Icons', action: 'view-icons' },
         { label: 'as List', action: 'view-list' },
         { divider: true },
@@ -140,6 +143,7 @@ export const MenuBarMenus: React.FC = () => {
                 });
                 break;
             case 'select-all': document.execCommand('selectAll'); break;
+            case 'edit-widgets': useWidgetManager.getState().toggleWidgetGallery(true); break;
             case 'help':
                 openWindow('safari', 'Safari', { props: { url: 'https://support.apple.com/macos' } });
                 break;

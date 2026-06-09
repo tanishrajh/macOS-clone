@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useFileSystem } from '../../store/filesystem';
 import { useSettings } from '../../store/settings';
 import { useWindowManager } from '../../store/window-manager';
+import { useWidgetManager } from '../../store/widget-manager';
+import { WidgetGallery } from './WidgetGallery';
 import { FileIcon } from '../system/FileIcon';
 import { WindowFrame } from '../system/WindowFrame';
 import { ContextMenu } from '../system/ContextMenu';
@@ -59,7 +61,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSystem } from '../../store/system';
 
 export const Desktop: React.FC = () => {
-    const { wallpaper, widgets, stageManager, toggleStageManager } = useSettings();
+    const { wallpaper, stageManager, toggleStageManager } = useSettings();
+    const { toggleWidgetGallery, activeWidgets } = useWidgetManager();
     const { files, getChildren, createFolder, deleteFile, renameFile } = useFileSystem();
     const { windows, openWindow, isMissionControlOpen, toggleMissionControl } = useWindowManager();
     const { isLocked } = useSystem();
@@ -185,16 +188,16 @@ export const Desktop: React.FC = () => {
                 },
             ];
         } else if (contextMenu?.widgetId) {
-            const widget = widgets?.find(w => w.id === contextMenu.widgetId);
+            const widget = activeWidgets?.find(w => w.id === contextMenu.widgetId);
             if (!widget) return [];
             return [
-                { label: 'Edit Widgets...', action: () => openWindow('settings') },
+                { label: 'Edit Widgets...', action: () => toggleWidgetGallery(true) },
                 { separator: true },
-                { label: 'Small', checked: widget.size === 'small', action: () => useSettings.getState().updateWidgetSize(widget.id, 'small') },
-                { label: 'Medium', checked: widget.size === 'medium', action: () => useSettings.getState().updateWidgetSize(widget.id, 'medium') },
-                { label: 'Large', checked: widget.size === 'large', action: () => useSettings.getState().updateWidgetSize(widget.id, 'large') },
+                { label: 'Small', checked: widget.size === 'small', action: () => useWidgetManager.getState().updateWidgetSize(widget.id, 'small') },
+                { label: 'Medium', checked: widget.size === 'medium', action: () => useWidgetManager.getState().updateWidgetSize(widget.id, 'medium') },
+                { label: 'Large', checked: widget.size === 'large', action: () => useWidgetManager.getState().updateWidgetSize(widget.id, 'large') },
                 { separator: true },
-                { label: 'Remove Widget', danger: true, action: () => useSettings.getState().removeWidget(widget.id) },
+                { label: 'Remove Widget', danger: true, action: () => useWidgetManager.getState().removeWidget(widget.id) },
             ];
         } else {
             // Background Context Menu
@@ -217,8 +220,8 @@ export const Desktop: React.FC = () => {
                     })
                 },
                 { separator: true },
-                { label: 'Edit Widgets...', action: () => openWindow('settings') },
                 { label: 'Change Wallpaper...', action: () => openWindow('settings') },
+                { label: 'Edit Widgets...', action: () => toggleWidgetGallery(true) },
                 { separator: true },
                 { label: 'Clean Up', action: () => setSelectedIds(new Set()) },
             ];
@@ -285,20 +288,21 @@ export const Desktop: React.FC = () => {
 
             {/* Desktop Widgets */}
             <AnimatePresence>
-                {!stageManager && widgets?.map((widget) => {
+                {!stageManager && activeWidgets?.map((widget) => {
                     const WidgetComponent = WIDGET_COMPONENTS[widget.type];
                     if (!WidgetComponent) return null;
                     return (
-                        <WidgetContainer 
-                            key={widget.id} 
-                            id={widget.id} 
-                            initialX={widget.x} 
-                            initialY={widget.y} 
-                            size={widget.size}
-                            onContextMenu={(e) => handleWidgetContextMenu(e, widget.id)}
-                        >
-                            <WidgetComponent size={widget.size} />
-                        </WidgetContainer>
+                        <div key={widget.id} className="pointer-events-auto">
+                            <WidgetContainer 
+                                id={widget.id} 
+                                initialX={widget.x} 
+                                initialY={widget.y} 
+                                size={widget.size}
+                                onContextMenu={(e) => handleWidgetContextMenu(e, widget.id)}
+                            >
+                                <WidgetComponent size={widget.size} />
+                            </WidgetContainer>
+                        </div>
                     );
                 })}
             </AnimatePresence>
@@ -312,6 +316,9 @@ export const Desktop: React.FC = () => {
                     onClose={() => setContextMenu(null)}
                 />
             )}
+
+            {/* Widget Gallery Sidebar */}
+            <WidgetGallery />
 
             {/* Dialogs */}
             <Dialog
