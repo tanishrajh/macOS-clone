@@ -108,9 +108,11 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
     const slotSpacing = Math.min(180, availableHeight / totalSlots);
 
     const scale = 0.22;
-    // Stack goes UP and RIGHT (positive X, negative Y)
-    const targetLeft = 10 + (appWindowIndex * 15) + (overflowIndex * 15);
-    const targetTop = 80 + (slotIndex * slotSpacing) - (appWindowIndex * 15) - (overflowIndex * 15);
+    // Stack goes UP and RIGHT with larger offset
+    const offset = (appWindowIndex + overflowIndex) * 30;
+    const targetLeft = 10 + offset;
+    const frontTargetTop = 80 + (slotIndex * slotSpacing);
+    const targetTop = frontTargetTop - offset;
 
     const stripY = targetTop - (window.height / 2 * (1 - scale));
 
@@ -121,7 +123,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         y: stripY,
         width: window.width,
         height: window.height,
-        rotateY: 15,
+        rotateY: 35,
         rotateX: 0,
         originX: 0,
         originY: 0.5,
@@ -177,15 +179,17 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
 
     const appConfig = DOCK_APPS.find(a => a.id === window.appId);
 
-    const isFrontOfSlot = overflowIndex === 0 && appWindowIndex === 0;
-    const showIcon = stageManager && appConfig && isActuallyInStrip && isFrontOfSlot;
+    // Only show icon for the first window of each app in the strip
+    const showIcon = stageManager && appConfig && isActuallyInStrip && appWindowIndex === 0;
 
     // Calculate flat icon state for Stage Manager Strip
     const iconScale = showIcon ? 1 : 0.5;
     const iconOpacity = showIcon ? 1 : 0;
-    // targetLeft and targetTop from the strip state calculations above:
-    const iconX = targetLeft - 5;
-    const iconY = targetTop + (window.height * scale) - 30;
+    
+    // Icons are anchored to the front window's Y position, but offset in X
+    const iconX = 5 + (overflowIndex * 35);
+    const iconY = frontTargetTop + (window.height * scale) - 30;
+    const iconZIndex = 999999 - overflowIndex;
 
     return (
         <>
@@ -205,7 +209,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 zIndex: window.zIndex,
                 pointerEvents: window.minimized ? 'none' : 'auto',
                 boxShadow: window.isForeground ? 'var(--window-shadow-active)' : 'var(--window-shadow-inactive)',
-                transformPerspective: 4000,
+                transformPerspective: 2000,
                 transformStyle: "preserve-3d",
             }}
             onPointerDown={handlePointerDown}
@@ -280,7 +284,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 style={{
                     width: 52,
                     height: 52,
-                    zIndex: window.zIndex + 1,
+                    zIndex: iconZIndex,
                 }}
                 animate={{
                     opacity: iconOpacity,
