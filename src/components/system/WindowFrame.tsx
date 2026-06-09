@@ -121,8 +121,8 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         y: stripY,
         width: window.width,
         height: window.height,
-        rotateY: 25,
-        rotateX: 5,
+        rotateY: 15,
+        rotateX: 0,
         originX: 0,
         originY: 0.5,
     };
@@ -205,7 +205,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
                 zIndex: window.zIndex,
                 pointerEvents: window.minimized ? 'none' : 'auto',
                 boxShadow: window.isForeground ? 'var(--window-shadow-active)' : 'var(--window-shadow-inactive)',
-                transformPerspective: 1200,
+                transformPerspective: 4000,
                 transformStyle: "preserve-3d",
             }}
             onPointerDown={handlePointerDown}
