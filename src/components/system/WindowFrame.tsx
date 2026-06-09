@@ -74,8 +74,7 @@ export const WindowFrame = ({ window, children }: WindowFrameProps) => {
         .filter(w => w.appId !== stageActiveAppId && !w.minimized)
         .sort((a, b) => b.zIndex - a.zIndex) // highest zIndex first (most recent)
         .map(w => w.appId)
-        .filter((v, i, a) => a.indexOf(v) === i)
-        .slice(0, 4);
+        .filter((v, i, a) => a.indexOf(v) === i);
 
     const isActuallyInStrip = isInStrip && stripAppIds.includes(window.appId);
 
