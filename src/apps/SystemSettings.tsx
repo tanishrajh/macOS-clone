@@ -6,6 +6,8 @@ import {
     Globe, Lock, Moon, Image as ImageIcon, Type, LayoutGrid
 } from 'lucide-react';
 import clsx from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatedToggle } from '../components/system/AnimatedToggle';
 
 export const SystemSettings: React.FC = () => {
     const settings = useSettings();
@@ -57,13 +59,18 @@ export const SystemSettings: React.FC = () => {
         { id: 'wallpaper', icon: ImageIcon, label: 'Wallpaper', color: 'bg-cyan-500' },
         { id: 'widgets', icon: LayoutGrid, label: 'Widgets', color: 'bg-orange-500' },
         { id: 'dock', icon: Dock, label: 'Desktop & Dock', color: 'bg-gray-400' },
-        { id: 'lockscreen', icon: Lock, label: 'Lock Screen', color: 'bg-gray-500' },
-        { id: 'users', icon: User, label: 'Users & Groups', color: 'bg-gray-400' },
+        { id: 'lockscreen', icon: Lock, label: 'Lock Screen', color: 'bg-gray-500', keywords: ['sleep', 'password', 'timeout'] },
+        { id: 'users', icon: User, label: 'Users & Groups', color: 'bg-gray-400', keywords: ['profile', 'name', 'avatar', 'password'] },
     ];
 
-    const filteredItems = MENU_ITEMS.filter(item =>
-        item.type === 'spacer' || item.label?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredItems = MENU_ITEMS.filter(item => {
+        if (item.type === 'spacer') return true;
+        const search = searchTerm.toLowerCase();
+        if (!item.label) return false;
+        if (item.label.toLowerCase().includes(search)) return true;
+        if ((item as any).keywords && (item as any).keywords.some((k: string) => k.includes(search))) return true;
+        return false;
+    });
 
     return (
         <div className="flex h-full bg-[#F5F5F7] dark:bg-[#1E1E1E] text-black dark:text-white font-sans text-sm transition-colors duration-300">
@@ -133,12 +140,22 @@ export const SystemSettings: React.FC = () => {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 overflow-y-auto px-10 py-10">
-                <div className="max-w-2xl mx-auto">
-                    {/* Header */}
-                    <h1 className="text-2xl font-bold mb-6 capitalize">{activeTab.replace('-', ' ')}</h1>
+            <div className="flex-1 overflow-y-auto relative bg-[#F5F5F7] dark:bg-[#1E1E1E]">
+                {/* Sticky Header */}
+                <div className="sticky top-0 z-10 backdrop-blur-xl bg-[#F5F5F7]/80 dark:bg-[#1E1E1E]/80 border-b border-transparent pb-4 pt-10 px-10">
+                    <h1 className="text-2xl font-bold capitalize max-w-2xl mx-auto">{activeTab.replace('-', ' ')}</h1>
+                </div>
 
-                    {/* CONTENT: Network */}
+                <div className="max-w-2xl mx-auto px-10 pb-10 mt-6 relative">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {/* CONTENT: Network */}
                     {activeTab === 'network' && (
                         <div className="space-y-6">
                             <Section label="Network">
@@ -210,11 +227,9 @@ export const SystemSettings: React.FC = () => {
                                         <div className="font-semibold">Do Not Disturb</div>
                                         <div className="text-xs text-gray-500">{settings.focusMode ? 'On' : 'Off'}</div>
                                     </div>
-                                    <input
-                                        type="checkbox"
-                                        className="toggle-checkbox"
-                                        checked={settings.focusMode}
-                                        onChange={settings.toggleFocusMode}
+                                    <AnimatedToggle 
+                                        checked={settings.focusMode} 
+                                        onChange={() => settings.toggleFocusMode()} 
                                     />
                                 </div>
                             </Section>
@@ -386,11 +401,9 @@ export const SystemSettings: React.FC = () => {
                                     <div className="h-[1px] bg-gray-200 dark:bg-white/10" />
                                     <div className="flex items-center justify-between">
                                         <span className="font-medium">Show "Sleep" button</span>
-                                        <input
-                                            type="checkbox"
-                                            className="toggle-checkbox"
-                                            checked={settings.showSleepButton}
-                                            onChange={(e) => settings.setShowSleepButton(e.target.checked)}
+                                        <AnimatedToggle 
+                                            checked={settings.showSleepButton} 
+                                            onChange={(c) => settings.setShowSleepButton(c)} 
                                         />
                                     </div>
                                 </div>
@@ -473,38 +486,20 @@ export const SystemSettings: React.FC = () => {
                                     <div className="flex items-center justify-between">
                                         <span className="font-medium">Magnification</span>
                                         <div className="flex items-center gap-4">
-                                            <div className="flex items-center gap-4 w-64">
-                                                <div
-                                                    className={clsx(
-                                                        "w-10 h-6 rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out",
-                                                        settings.dockMagnification ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
-                                                    )}
-                                                    onClick={() => settings.setDockMagnification(!settings.dockMagnification)}
-                                                >
-                                                    <div className={clsx(
-                                                        "w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200",
-                                                        settings.dockMagnification ? "translate-x-4" : "translate-x-0"
-                                                    )} />
-                                                </div>
-                                            </div>
+                                            <AnimatedToggle 
+                                                checked={settings.dockMagnification} 
+                                                onChange={(c) => settings.setDockMagnification(c)} 
+                                            />
                                         </div>
                                     </div>
 
                                     <div className="flex items-center justify-between">
                                         <span className="font-medium">Stage Manager</span>
                                         <div className="flex items-center gap-4">
-                                            <div
-                                                className={clsx(
-                                                    "w-10 h-6 rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out",
-                                                    settings.stageManager ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
-                                                )}
-                                                onClick={() => settings.toggleStageManager()}
-                                            >
-                                                <div className={clsx(
-                                                    "w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200",
-                                                    settings.stageManager ? "translate-x-4" : "translate-x-0"
-                                                )} />
-                                            </div>
+                                            <AnimatedToggle 
+                                                checked={settings.stageManager} 
+                                                onChange={() => settings.toggleStageManager()} 
+                                            />
                                         </div>
                                     </div>
 
@@ -626,10 +621,10 @@ export const SystemSettings: React.FC = () => {
                                         <Volume2 size={20} className="text-gray-900 dark:text-gray-100" />
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                    <input type="checkbox" className="rounded text-blue-500" defaultChecked />
-                                    <span>Play feedback when volume changes</span>
-                                </div>
+                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                        <span>Play feedback when volume changes</span>
+                                        <AnimatedToggle checked={true} onChange={() => {}} />
+                                    </div>
                             </div>
                         </Section>
                     )}
@@ -648,18 +643,7 @@ export const SystemSettings: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div
-                                    className={clsx(
-                                        "w-10 h-6 rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out",
-                                        settings.wifi ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
-                                    )}
-                                    onClick={settings.toggleWifi}
-                                >
-                                    <div className={clsx(
-                                        "w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200",
-                                        settings.wifi ? "translate-x-4" : "translate-x-0"
-                                    )} />
-                                </div>
+                                <AnimatedToggle checked={settings.wifi} onChange={() => settings.toggleWifi()} />
                             </div>
                         </Section>
                     )}
@@ -678,22 +662,13 @@ export const SystemSettings: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div
-                                    className={clsx(
-                                        "w-10 h-6 rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out",
-                                        settings.bluetooth ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
-                                    )}
-                                    onClick={settings.toggleBluetooth}
-                                >
-                                    <div className={clsx(
-                                        "w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200",
-                                        settings.bluetooth ? "translate-x-4" : "translate-x-0"
-                                    )} />
-                                </div>
+                                <AnimatedToggle checked={settings.bluetooth} onChange={() => settings.toggleBluetooth()} />
                             </div>
                         </Section>
                     )}
 
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
             </div>
         </div>
